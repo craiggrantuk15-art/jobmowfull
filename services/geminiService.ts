@@ -16,6 +16,7 @@ export const generateQuote = async (request: QuoteRequest, settings: BusinessSet
   const prompt = `
     You are an expert lawn care estimator for ${settings.businessName} in the UK.
     Estimate the price and duration for a lawn mowing job based on these details:
+    - Property Type: ${request.propertyType} (Impacts access and edge-work)
     - Size: ${request.lawnSize}
     - Frequency: ${request.frequency}
     - Address Context: ${request.address} (Consider UK property types generally)
@@ -28,6 +29,12 @@ export const generateQuote = async (request: QuoteRequest, settings: BusinessSet
     - Large Lawn Base Time: ~75 mins
     - Estate Base Time: 120+ mins
     
+    Property Type Modifiers:
+    - Detached: Standard
+    - Semi-Detached: +5% time for access
+    - Terraced: +15% time for rear access (through house/alleys)
+    - Commercial: +20% time for detailing
+
     Discounts (Apply to the per-mow price):
     - Weekly: ${settings.weeklyDiscount}% off per visit
     - Fortnightly: ${settings.fortnightlyDiscount}% off per visit
@@ -38,16 +45,13 @@ export const generateQuote = async (request: QuoteRequest, settings: BusinessSet
     1. Overgrown Surcharge: If your final estimated duration is ${settings.overgrownThreshold} minutes or more, you MUST add a flat surcharge of ${settings.currency}${settings.overgrownSurcharge} to the total.
     2. Fuel Surcharge: Use your internal geographic knowledge or tools to estimate the distance from our base (${settings.businessBasePostcode}) to the customer (${request.address}). If the distance is likely more than ${settings.fuelSurchargeRadius}km, you MUST add a travel surcharge of ${settings.currency}${settings.fuelSurchargeAmount}.
 
-    Business Operations:
-    - We strictly operate on these days: ${workingDaysStr}.
-    - Please mention in the explanation if we can likely fit them in on these days.
-
     Instructions:
-    1. Calculate total duration based on lawn size and extras.
+    1. Calculate total duration based on lawn size, property type access, and extras.
     2. Calculate total base price using hourly rate.
-    3. Apply frequency discount.
-    4. Check and add the Dynamic Surcharges defined above to the total.
-    5. List which surcharges were applied in the response.
+    3. Calculate extras total (approx £5-£15 each depending on work).
+    4. Apply frequency discount to base + extras.
+    5. Check and add the Dynamic Surcharges defined above to the total.
+    6. Ensure the mathematical breakdown is accurate.
     
     Return a JSON object.
   `;
@@ -55,16 +59,26 @@ export const generateQuote = async (request: QuoteRequest, settings: BusinessSet
   const schema = {
     type: Type.OBJECT,
     properties: {
-      estimatedPrice: { type: Type.NUMBER, description: "Total estimated price per visit in GBP (£) including all surcharges" },
+      estimatedPrice: { type: Type.NUMBER, description: "Final total price per visit in GBP (£)" },
       estimatedDurationMinutes: { type: Type.INTEGER, description: "Estimated time in minutes" },
-      explanation: { type: Type.STRING, description: "Brief friendly explanation. Mention why surcharges were added if applicable (e.g. 'includes a small fuel charge for travel')." },
+      explanation: { type: Type.STRING, description: "Persuasive friendly explanation." },
       surchargesApplied: { 
           type: Type.ARRAY, 
           items: { type: Type.STRING },
-          description: "List of surcharge names applied: 'Overgrown Grass', 'Fuel Surcharge', or empty array."
+          description: "List of surcharge names applied."
+      },
+      priceBreakdown: {
+        type: Type.OBJECT,
+        properties: {
+          base: { type: Type.NUMBER, description: "Base mowing fee before extras/discounts" },
+          extras: { type: Type.NUMBER, description: "Total for additional services" },
+          surcharges: { type: Type.NUMBER, description: "Total for distance/overgrowth" },
+          discount: { type: Type.NUMBER, description: "Total amount discounted (as a positive number)" }
+        },
+        required: ["base", "extras", "surcharges", "discount"]
       }
     },
-    required: ["estimatedPrice", "estimatedDurationMinutes", "explanation", "surchargesApplied"]
+    required: ["estimatedPrice", "estimatedDurationMinutes", "explanation", "surchargesApplied", "priceBreakdown"]
   };
 
   try {
@@ -85,8 +99,9 @@ export const generateQuote = async (request: QuoteRequest, settings: BusinessSet
     return {
       estimatedPrice: settings.baseHourlyRate,
       estimatedDurationMinutes: 60,
-      explanation: "We couldn't generate a live quote, so this is a baseline estimate based on average lawn sizes.",
-      surchargesApplied: []
+      explanation: "We couldn't generate a live quote, so this is a baseline estimate.",
+      surchargesApplied: [],
+      priceBreakdown: { base: settings.baseHourlyRate, extras: 0, surcharges: 0, discount: 0 }
     };
   }
 };

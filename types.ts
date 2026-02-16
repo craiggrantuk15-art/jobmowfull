@@ -24,6 +24,13 @@ export enum LawnSize {
   ESTATE = 'Estate (600m²+)'
 }
 
+export enum PropertyType {
+  DETACHED = 'Detached',
+  SEMI_DETACHED = 'Semi-Detached',
+  TERRACED = 'Terraced / Townhouse',
+  COMMERCIAL = 'Commercial / Other'
+}
+
 export enum ExpenseCategory {
   CAR_TRAVEL = 'Car, Van & Travel Expenses',
   OFFICE_EQUIPMENT = 'Office, Property & Equipment',
@@ -111,6 +118,7 @@ export interface Job {
   zone?: string;
   frequency: Frequency;
   lawnSize: LawnSize;
+  propertyType?: PropertyType;
   priceQuote: number;
   durationMinutes: number;
   status: JobStatus;
@@ -130,6 +138,7 @@ export interface Job {
 export interface QuoteRequest {
   lawnSize: LawnSize;
   frequency: Frequency;
+  propertyType: PropertyType;
   address: string;
   extras: string[];
 }
@@ -139,6 +148,12 @@ export interface QuoteResponse {
   estimatedDurationMinutes: number;
   explanation: string;
   surchargesApplied: string[];
+  priceBreakdown: {
+    base: number;
+    extras: number;
+    surcharges: number;
+    discount: number;
+  };
 }
 
 export interface OptimizationResult {
