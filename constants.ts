@@ -81,6 +81,8 @@ export const APP_VERSION = '0.0.1';
 
 export const SUPER_ADMIN_EMAILS = (import.meta.env.VITE_SUPER_ADMIN_EMAILS || 'craig@jobmow.com').split(','); // Fallback for dev convenience if needed, but primarily env based now
 
+export const PLATFORM_SUBSCRIPTION_PRICE_STARTER = 29;
+
 // Extras Options
 export const EXTRAS_OPTIONS = [
   'Fertilizer Application',

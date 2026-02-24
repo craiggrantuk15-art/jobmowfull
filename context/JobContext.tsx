@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import { Job, JobStatus, PaymentStatus, QuoteRequest, Expense, ExpenseCategory, Frequency, BusinessSettings, Communication, CommunicationType, Customer, JobStats } from '../types';
 import { MOCK_JOBS } from '../constants';
 import { sendNotification } from '../services/notificationService';
@@ -283,8 +283,16 @@ export const JobProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const addCommunication = async (comm: Omit<Communication, 'id' | 'created_at'>) => {
+    const targetOrgId = comm.organization_id || organizationId;
+
+    if (!targetOrgId) {
+      console.error('JobContext: Cannot add communication without organizationId');
+      return;
+    }
+
     const newComm: Communication = {
       ...comm,
+      organization_id: targetOrgId,
       id: generateUUID(),
       created_at: new Date().toISOString()
     };
@@ -296,10 +304,7 @@ export const JobProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       // Persist to DB
       const { error } = await supabase
         .from('communications')
-        .insert({
-          ...comm,
-          id: newComm.id
-        });
+        .insert(newComm);
 
       if (error) {
         console.error('Error adding communication:', error);
@@ -604,7 +609,7 @@ export const JobProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
   };
 
-  const getJobStats = (): JobStats => {
+  const jobStats = useMemo(() => {
     const today = new Date().toISOString().split('T')[0];
     const scheduledToday = jobs.filter(j =>
       j.status === JobStatus.SCHEDULED &&
@@ -633,13 +638,15 @@ export const JobProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       scheduledToday,
       completed: jobs.filter((j) => j.status === JobStatus.COMPLETED).length,
       revenue,
-      outstanding: unpaid, // Same as unpaid for now, but keeping for compatibility
+      outstanding: unpaid,
       unpaid,
       avgJobValue,
       totalExpenses,
       netProfit: revenue - totalExpenses
     };
-  };
+  }, [jobs, expenses]);
+
+  const getJobStats = (): JobStats => jobStats;
 
   return (
     <JobContext.Provider value={{
