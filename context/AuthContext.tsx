@@ -20,28 +20,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [organizationId, setOrganizationId] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
 
-    const processingUserRef = React.useRef<string | null>(null);
-
     useEffect(() => {
-        // Listen for changes (including INITIAL_SESSION)
+        // Listen for changes
         const {
             data: { subscription },
         } = supabase.auth.onAuthStateChange(async (event, session) => {
-
-
-            if (session?.user) {
-                // Prevent redundant mapping for the same user (e.g. StrictMode mounts)
-                if (processingUserRef.current === session.user.id) {
-                    setLoading(false);
-                    return;
+            // Only act on specific events to avoid redundant mapping
+            // INITIAL_SESSION, SIGNED_IN, and TOKEN_REFRESH (if user data changed) are key
+            if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'USER_UPDATED') {
+                if (session?.user) {
+                    await mapSupabaseUser(session.user);
                 }
-                processingUserRef.current = session.user.id;
-                await mapSupabaseUser(session.user);
-            } else {
-                processingUserRef.current = null;
+            } else if (event === 'SIGNED_OUT') {
                 setUser(null);
                 setOrganizationId(null);
             }
+
             setLoading(false);
         });
 
@@ -128,28 +122,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             return { error: null };
         }
 
-        // 4. Create Organization (Standard Flow)
-        const { data: orgData, error: orgError } = await supabase
-            .from('organizations')
-            .insert({ name: businessName })
-            .select()
-            .single();
+        // 4. Initialize Organization and Membership atomically
+        const { data: initData, error: initError } = await supabase.rpc('initialize_new_organization', {
+            business_name: businessName
+        });
 
-        if (orgError) {
-            return { error: `Failed to create organization: ${orgError.message}` };
-        }
-
-        // 5. Link User to Org
-        const { error: memberError } = await supabase
-            .from('organization_members')
-            .insert({
-                organization_id: orgData.id,
-                user_id: authData.user.id,
-                role: 'owner'
-            });
-
-        if (memberError) {
-            return { error: `Failed to create member link: ${memberError.message}` };
+        if (initError || !initData?.success) {
+            return { error: initError?.message || initData?.error || "Failed to initialize organization" };
         }
 
         // Force refresh session/user

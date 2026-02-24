@@ -3,7 +3,7 @@ export const requestNotificationPermission = async (): Promise<boolean> => {
     console.warn('This browser does not support desktop notifications');
     return false;
   }
-  
+
   try {
     const permission = await Notification.requestPermission();
     return permission === 'granted';
@@ -18,25 +18,46 @@ export const getNotificationPermissionState = (): NotificationPermission => {
   return Notification.permission;
 }
 
-// A professional notification chime
-const NOTIFICATION_SOUND_URL = 'https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3';
+// Local assets
+const NOTIFICATION_SOUND_URL = '/assets/notifications/chime.mp3';
+const NOTIFICATION_ICON_URL = '/assets/notifications/bell-icon.png';
+
+let audioContextUnlocked = false;
+
+/**
+ * Browsers block audio until a user interaction occurs.
+ * This function can be called on the first click to "unlock" audio capability.
+ */
+export const unlockAudio = () => {
+  if (audioContextUnlocked) return;
+
+  const audio = new Audio(NOTIFICATION_SOUND_URL);
+  audio.volume = 0; // Silent play to unlock
+  audio.play()
+    .then(() => {
+      audioContextUnlocked = true;
+      console.debug('Notification audio context unlocked.');
+    })
+    .catch((err) => {
+      console.debug('Audio unlock failed:', err);
+    });
+};
 
 export const sendNotification = (title: string, body: string) => {
   if (!('Notification' in window)) return;
-  
+
   if (Notification.permission === 'granted') {
     try {
-      // Fix: Cast options to any as properties like 'renotify' and 'silent' may not be in the default NotificationOptions type
       const n = new Notification(title, {
         body,
-        icon: 'https://cdn-icons-png.flaticon.com/512/628/628283.png', 
-        badge: 'https://cdn-icons-png.flaticon.com/512/628/628283.png',
+        icon: NOTIFICATION_ICON_URL,
+        badge: NOTIFICATION_ICON_URL,
         tag: 'jobmow-lead-alert',
         renotify: true,
         silent: false,
       } as any);
 
-      // Play alert sound - browser might block this without prior user interaction
+      // Play alert sound
       const audio = new Audio(NOTIFICATION_SOUND_URL);
       audio.volume = 0.5;
       audio.play().catch(() => {

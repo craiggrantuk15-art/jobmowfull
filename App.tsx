@@ -34,10 +34,18 @@ import ProtectedRoute from './components/ProtectedRoute';
 import SuperAdminRoute from './components/SuperAdminRoute';
 import SubscriptionGate from './components/SubscriptionGate';
 import { JobProvider } from './context/JobContext';
-
 import { ServiceProvider } from './context/ServiceContext';
+import { unlockAudio } from './services/notificationService';
 
 const App: React.FC = () => {
+  React.useEffect(() => {
+    const handleFirstClick = () => {
+      unlockAudio();
+      window.removeEventListener('click', handleFirstClick);
+    };
+    window.addEventListener('click', handleFirstClick);
+    return () => window.removeEventListener('click', handleFirstClick);
+  }, []);
 
   return (
     <ServiceProvider>

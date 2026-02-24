@@ -79,7 +79,7 @@ export const MOCK_JOBS: Job[] = [
 export const APP_NAME = 'JobMow';
 export const APP_VERSION = '0.0.1';
 
-export const SUPER_ADMIN_EMAILS = ['craig@jobmow.com']; // Replace with your actual email
+export const SUPER_ADMIN_EMAILS = (import.meta.env.VITE_SUPER_ADMIN_EMAILS || 'craig@jobmow.com').split(','); // Fallback for dev convenience if needed, but primarily env based now
 
 // Extras Options
 export const EXTRAS_OPTIONS = [
