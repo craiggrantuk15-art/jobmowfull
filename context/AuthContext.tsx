@@ -27,7 +27,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const {
             data: { subscription },
         } = supabase.auth.onAuthStateChange(async (event, session) => {
-            console.log('AuthContext: onAuthStateChange event:', event);
+
 
             if (session?.user) {
                 // Prevent redundant mapping for the same user (e.g. StrictMode mounts)
@@ -67,7 +67,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             .single();
 
         if (data) {
-            console.log('AuthContext: Found organization', data.organization_id);
+
             setOrganizationId(data.organization_id);
         } else {
             console.warn('AuthContext: No organization found for user', sbUser.id);
@@ -90,53 +90,45 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     const signup = async (email: string, password: string, businessName: string, inviteToken?: string) => {
-        // 1. Sign up auth user
+        let metaData: any = {
+            name: businessName,
+            role: inviteToken ? 'member' : 'owner'
+        };
+
+        // 1. If Invite Token, fetch details first to get the correct name
+        if (inviteToken) {
+            const { data: inviteDetails } = await supabase.rpc('get_invite_details', { token: inviteToken });
+            if (inviteDetails && inviteDetails.valid && inviteDetails.full_name) {
+                metaData.name = inviteDetails.full_name;
+            }
+        }
+
+        // 2. Sign up auth user (Only call this once)
         const { data: authData, error: authError } = await supabase.auth.signUp({
             email,
             password,
             options: {
-                data: {
-                    name: businessName, // Store temp name in metadata (or user name if invite)
-                    role: inviteToken ? 'member' : 'owner'
-                }
+                data: metaData
             }
         });
 
         if (authError) return { error: authError.message };
         if (!authData.user) return { error: "No user returned" };
 
-        // 2. If Invite Token, accept it and return
+        // 3. Handle invitation acceptance if applicable
         if (inviteToken) {
-            // Fetch invite details to get the full_name
-            const { data: inviteDetails } = await supabase.rpc('get_invite_details', { token: inviteToken });
-
-            const metaData: any = { role: 'member' };
-            if (inviteDetails && inviteDetails.valid && inviteDetails.full_name) {
-                metaData.name = inviteDetails.full_name;
-            }
-
-            const { data: authData, error: authError } = await supabase.auth.signUp({
-                email,
-                password,
-                options: {
-                    data: metaData
-                }
-            });
-
-            if (authError) return { error: authError.message };
-
             const { data: acceptData, error: acceptError } = await supabase.rpc('accept_invitation', { token: inviteToken });
 
             if (acceptError) {
                 return { error: `Failed to accept invitation: ${acceptError.message}` };
             }
 
-            // Force refresh session/user to pick up new claim/org
+            // Force refresh session/user
             await login(email, password);
             return { error: null };
         }
 
-        // 3. Create Organization (Standard Flow)
+        // 4. Create Organization (Standard Flow)
         const { data: orgData, error: orgError } = await supabase
             .from('organizations')
             .insert({ name: businessName })
@@ -147,7 +139,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             return { error: `Failed to create organization: ${orgError.message}` };
         }
 
-        // 4. Link User to Org
+        // 5. Link User to Org
         const { error: memberError } = await supabase
             .from('organization_members')
             .insert({
@@ -160,9 +152,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             return { error: `Failed to create member link: ${memberError.message}` };
         }
 
-        // Force refresh session/user to pick up new claim/org
-        await login(email, password); // Auto login? Or just let the session refresh?
-        // Session refresh might be safer.
+        // Force refresh session/user
+        await login(email, password);
 
         return { error: null };
     };

@@ -18,9 +18,9 @@ const Dashboard: React.FC = () => {
 
   useEffect(() => {
     const hour = new Date().getHours();
-    if (hour < 12) setGreeting('Good morning');
-    else if (hour < 18) setGreeting('Good afternoon');
-    else setGreeting('Good evening');
+    if (hour < 12) setGreeting('Good Morning');
+    else if (hour < 18) setGreeting('Good Afternoon');
+    else setGreeting('Good Evening');
   }, []);
 
   useEffect(() => {
@@ -167,8 +167,8 @@ const Dashboard: React.FC = () => {
     return jobs
       .filter(j => j.status === JobStatus.SCHEDULED)
       .sort((a, b) => {
-        if (!a.appointment_date || !b.appointment_date) return 0;
-        return new Date(a.appointment_date).getTime() - new Date(b.appointment_date).getTime();
+        if (!a.scheduled_date || !b.scheduled_date) return 0;
+        return new Date(a.scheduled_date).getTime() - new Date(b.scheduled_date).getTime();
       })
       .slice(0, 3);
   }, [jobs]);
@@ -274,7 +274,7 @@ const Dashboard: React.FC = () => {
               {greeting}, <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-300">{user?.name?.split(' ')[0] || settings.businessName.split(' ')[0]}</span>
             </h1>
             <p className="text-slate-400 max-w-lg text-lg mb-6 leading-relaxed">
-              Here's the pulse of your lawn care business. You have <span className="text-white font-bold">{stats.scheduled} jobs</span> scheduled for today.
+              Here's the pulse of your lawn care business. You have <span className="text-white font-bold">{stats.scheduledToday} jobs</span> scheduled for today.
             </p>
 
             <div className="flex flex-wrap gap-3 mt-2">
@@ -306,12 +306,12 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* MowVision™ AI Insight Card */}
-      <div className={`relative overflow-hidden p-8 rounded-[2rem] border shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-1000 group ${aiInsight.type === 'success' ? 'bg-gradient-to-br from-emerald-600 via-emerald-500 to-teal-600 text-white border-emerald-400/30' :
-        aiInsight.type === 'warning' ? 'bg-gradient-to-br from-amber-500 via-orange-500 to-amber-600 text-white border-amber-400/30' : 'bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white border-slate-700/50'
+      <div className={`relative overflow-hidden p-8 rounded-[2rem] border shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-1000 group backdrop-blur-xl ${aiInsight.type === 'success' ? 'bg-gradient-to-br from-emerald-600/90 via-emerald-500/80 to-teal-600/90 text-white border-emerald-400/40' :
+        aiInsight.type === 'warning' ? 'bg-gradient-to-br from-amber-500/90 via-orange-500/80 to-amber-600/90 text-white border-amber-400/40' : 'bg-gradient-to-br from-slate-900/95 via-slate-800/90 to-slate-900/95 text-white border-slate-700/60'
         }`}>
         {/* Animated Orbs */}
-        <div className="absolute -top-24 -right-24 w-64 h-64 bg-white/10 rounded-full blur-3xl group-hover:bg-white/20 transition-all duration-700"></div>
-        <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-black/10 rounded-full blur-2xl"></div>
+        <div className="absolute -top-24 -right-24 w-64 h-64 bg-white/10 rounded-full blur-[100px] group-hover:bg-white/20 transition-all duration-1000"></div>
+        <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-black/20 rounded-full blur-[80px]"></div>
 
         <div className="flex flex-col md:flex-row md:items-center gap-8 relative z-10">
           <div className={`w-16 h-16 rounded-[1.5rem] flex items-center justify-center flex-shrink-0 shadow-2xl transform group-hover:scale-110 transition-transform duration-500 ${aiInsight.type === 'success' ? 'bg-white text-emerald-600' :
@@ -624,7 +624,7 @@ const Dashboard: React.FC = () => {
               <div key={job.id} className="p-5 rounded-2xl bg-white border border-slate-100 shadow-sm hover:shadow-md transition-all group/job">
                 <div className="flex justify-between items-start mb-3">
                   <div className="px-2 py-1 bg-blue-50 text-blue-700 text-[10px] font-bold rounded-lg uppercase tracking-wider">
-                    {job.appointment_date ? new Date(job.appointment_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'TBD'}
+                    {job.scheduled_date ? new Date(job.scheduled_date).toLocaleDateString([], { day: '2-digit', month: 'short' }) : 'TBD'}
                   </div>
                   <button className="p-2 bg-slate-50 text-slate-400 rounded-xl group-hover/job:bg-blue-50 group-hover/job:text-blue-600 transition-colors">
                     <ArrowUpRight size={14} />

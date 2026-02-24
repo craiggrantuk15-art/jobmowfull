@@ -69,7 +69,8 @@ const DEFAULT_SETTINGS: BusinessSettings = {
   extraWeedingPrice: 25,
   extraLeafCleanupPrice: 20,
   postcodeApiUrl: 'https://api.postcodes.io',
-  onboardingCompleted: false
+  onboardingCompleted: false,
+  monthlyGoal: 5000
 };
 
 export const JobProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -165,7 +166,7 @@ export const JobProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     // Last resort fetch if still missing
     if (!targetOrgId || targetOrgId === '') {
-      console.log("addJob: Organization context missing, attempting emergency fetch...");
+
       const { data } = await supabase.from('organizations').select('id').limit(1).single();
       if (data) {
         targetOrgId = data.id;
@@ -187,7 +188,7 @@ export const JobProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       throw error;
     }
 
-    console.log("addJob: Saving job with service_id:", job.service_id, "for org:", targetOrgId);
+
 
     // Check if customer exists by ID first (if provided)
     // or by name/address if not found or ID not provided?
@@ -223,7 +224,7 @@ export const JobProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (custError) {
         // If customer already exists (PK violation), we can ignore and move to job insert
         if (custError.code === '23505') {
-          console.log('Customer already exists, continuing to job creation.');
+
         } else {
           console.error('Error creating customer:', custError);
           throw custError;
@@ -604,22 +605,37 @@ export const JobProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const getJobStats = (): JobStats => {
+    const today = new Date().toISOString().split('T')[0];
+    const scheduledToday = jobs.filter(j =>
+      j.status === JobStatus.SCHEDULED &&
+      j.scheduled_date?.startsWith(today)
+    ).length;
+
     const revenue = jobs.reduce(
-      (acc, j) => acc + (j.payment_status === PaymentStatus.PAID ? j.price_quote : 0),
+      (acc, j) => acc + (j.status === JobStatus.COMPLETED && j.payment_status === PaymentStatus.PAID ? j.price_quote : 0),
       0
     );
 
     const totalExpenses = expenses.reduce((acc, e) => acc + e.amount, 0);
+    const unpaid = jobs.reduce(
+      (acc, j) => acc + (j.status === JobStatus.COMPLETED && j.payment_status === PaymentStatus.UNPAID ? j.price_quote : 0),
+      0
+    );
+
+    const jobsWithQuotes = jobs.filter(j => j.price_quote > 0);
+    const avgJobValue = jobsWithQuotes.length > 0
+      ? jobsWithQuotes.reduce((acc, j) => acc + j.price_quote, 0) / jobsWithQuotes.length
+      : 35; // Default fallback
 
     return {
       pending: jobs.filter((j) => j.status === JobStatus.PENDING).length,
       scheduled: jobs.filter((j) => j.status === JobStatus.SCHEDULED).length,
+      scheduledToday,
       completed: jobs.filter((j) => j.status === JobStatus.COMPLETED).length,
       revenue,
-      outstanding: jobs.reduce(
-        (acc, j) => acc + (j.payment_status === PaymentStatus.UNPAID && j.status === JobStatus.COMPLETED ? j.price_quote : 0),
-        0
-      ),
+      outstanding: unpaid, // Same as unpaid for now, but keeping for compatibility
+      unpaid,
+      avgJobValue,
       totalExpenses,
       netProfit: revenue - totalExpenses
     };

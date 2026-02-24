@@ -124,6 +124,7 @@ export interface BusinessSettings {
   postcodeApiUrl?: string;
   temperatureUnit?: 'C' | 'F';
   onboardingCompleted?: boolean;
+  monthlyGoal?: number;
 }
 
 export interface Expense {
@@ -223,9 +224,12 @@ export interface OptimizationResult {
 export interface JobStats {
   pending: number;
   scheduled: number;
+  scheduledToday: number;
   completed: number;
   revenue: number;
   outstanding: number;
+  unpaid: number;
+  avgJobValue: number;
   totalExpenses: number;
   netProfit: number;
 }
