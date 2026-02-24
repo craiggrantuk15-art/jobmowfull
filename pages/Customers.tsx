@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useJobs } from '../context/JobContext';
 import { Job, PaymentStatus, JobStatus, CommunicationType, Communication } from '../types';
 import { Search, MapPin, Phone, Mail, Users, ArrowUpRight, PoundSterling, X, Calendar, Clock, CheckCircle, AlertCircle, Tag, MessageSquare, Mail as MailIcon, PhoneIncoming, Info, History, Edit2, Save, Plus } from 'lucide-react';
@@ -51,7 +51,7 @@ const Customers: React.FC = () => {
     const [commBody, setCommBody] = useState('');
     const [commJobId, setCommJobId] = useState<string>('');
 
-    const allCustomers: AggregatedCustomer[] = customers.map(customer => {
+    const allCustomers: AggregatedCustomer[] = useMemo(() => customers.map(customer => {
         // Find jobs for this customer
         // Match by ID (preferred) or Name/Address (legacy/fallback)
         const customerJobs = jobs.filter(j =>
@@ -91,7 +91,7 @@ const Customers: React.FC = () => {
             lastVisit,
             status
         };
-    });
+    }), [customers, jobs]);
 
     // Fallback for "Ghost" customers (Jobs that don't have a customer record yet - e.g. from Mock Data or potential sync issues)
     // We can create a temporary map of legacy customers from jobs to ensure none are hidden.
@@ -100,15 +100,15 @@ const Customers: React.FC = () => {
     // If we really need legacy support, we can union them.
     // Given we wiped mock data, we should rely on real customers.
 
-    const filteredCustomers = allCustomers.filter(c =>
+    const filteredCustomers = useMemo(() => allCustomers.filter(c =>
         c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         c.address.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (c.email && c.email.toLowerCase().includes(searchTerm.toLowerCase()))
-    );
+    ), [allCustomers, searchTerm]);
 
-    const selectedCustomer = selectedCustomerId ? allCustomers.find(c => c.id === selectedCustomerId) : null;
+    const selectedCustomer = useMemo(() => selectedCustomerId ? allCustomers.find(c => c.id === selectedCustomerId) : null, [selectedCustomerId, allCustomers]);
 
-    const customerHistory = selectedCustomerId && selectedCustomer
+    const customerHistory = useMemo(() => selectedCustomerId && selectedCustomer
         ? jobs
             .filter(j => j.customer_id === selectedCustomerId || (j.customer_name === selectedCustomer.name && j.address === selectedCustomer.address))
             .sort((a, b) => {
@@ -116,13 +116,13 @@ const Customers: React.FC = () => {
                 const dateB = b.completed_date || b.scheduled_date || '1970-01-01';
                 return new Date(dateB).getTime() - new Date(dateA).getTime();
             })
-        : [];
+        : [], [selectedCustomerId, selectedCustomer, jobs]);
 
-    const customerCommunications = selectedCustomerId
+    const customerCommunications = useMemo(() => selectedCustomerId
         ? communications
             .filter(c => c.customer_id === selectedCustomerId || (selectedCustomer && c.customer_id === `${selectedCustomer.name}-${selectedCustomer.address}`)) // Support legacy comms ID
             .sort((a, b) => new Date(b.sent_at).getTime() - new Date(a.sent_at).getTime())
-        : [];
+        : [], [selectedCustomerId, selectedCustomer, communications]);
 
     const handleOpenEdit = () => {
         if (selectedCustomer) {
@@ -178,7 +178,6 @@ const Customers: React.FC = () => {
                     ),
                     body: commBody,
                     job_id: commJobId || undefined,
-                    organization_id: '', // Context will override this
                     sent_at: new Date().toISOString()
                 });
 
@@ -254,7 +253,7 @@ const Customers: React.FC = () => {
                         </div>
                     </div>
                     <p className="text-2xl font-bold text-slate-900">
-                        {settings.currency}{(allCustomers.reduce((acc, c) => acc + c.totalSpent, 0) / (allCustomers.length || 1)).toFixed(2)}
+                        {settings.currency}{useMemo(() => (allCustomers.reduce((acc, c) => acc + c.totalSpent, 0) / (allCustomers.length || 1)).toFixed(2), [allCustomers])}
                     </p>
                 </div>
                 <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">

@@ -16,7 +16,8 @@ const SuperAdminSettings: React.FC = () => {
         enableBetaFeatures: false,
         weatherApiKey: '',
         weatherCity: '',
-        postcodeApiUrl: 'https://api.postcodes.io'
+        postcodeApiUrl: 'https://api.postcodes.io',
+        platformSubscriptionPriceStarter: 29
     });
 
     useEffect(() => {
@@ -46,6 +47,7 @@ const SuperAdminSettings: React.FC = () => {
                     if (key === 'weather_api_key') newFormData.weatherApiKey = value;
                     if (key === 'weather_city') newFormData.weatherCity = value;
                     if (key === 'postcode_api_url') newFormData.postcodeApiUrl = value;
+                    if (key === 'platform_subscription_price_starter') newFormData.platformSubscriptionPriceStarter = value;
                 });
                 setFormData(newFormData);
             }
@@ -70,7 +72,8 @@ const SuperAdminSettings: React.FC = () => {
                 { key: 'enable_beta_features', value: formData.enableBetaFeatures },
                 { key: 'weather_api_key', value: formData.weatherApiKey },
                 { key: 'weather_city', value: formData.weatherCity },
-                { key: 'postcode_api_url', value: formData.postcodeApiUrl }
+                { key: 'postcode_api_url', value: formData.postcodeApiUrl },
+                { key: 'platform_subscription_price_starter', value: formData.platformSubscriptionPriceStarter }
             ];
 
             const { error } = await supabase
@@ -144,6 +147,17 @@ const SuperAdminSettings: React.FC = () => {
                                     value={formData.defaultTrialPeriod}
                                     onChange={e => setFormData({ ...formData, defaultTrialPeriod: Number(e.target.value) })}
                                 />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide">Starter Plan Monthly Price (£)</label>
+                                <input
+                                    type="number"
+                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-lawn-500 outline-none font-bold"
+                                    value={formData.platformSubscriptionPriceStarter}
+                                    onChange={e => setFormData({ ...formData, platformSubscriptionPriceStarter: Number(e.target.value) })}
+                                />
+                                <p className="text-[10px] text-slate-400 mt-1 uppercase font-bold tracking-tight">Updating this will change MRR calculations in real-time.</p>
                             </div>
                         </div>
                     </div>

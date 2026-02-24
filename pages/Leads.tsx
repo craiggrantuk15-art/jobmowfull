@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { supabase } from '../lib/supabase';
 import { Lead, Job, JobStatus, CommunicationType } from '../types';
 import { Search, Mail, Building, Users as UsersIcon, Calendar, ArrowRight, UserPlus, Trash, Filter, Briefcase, MapPin, Clock, Globe } from 'lucide-react';
@@ -19,7 +19,7 @@ const Leads: React.FC = () => {
   const [isWizardOpen, setIsWizardOpen] = useState(false);
   const [selectedLead, setSelectedLead] = useState<any>(null);
 
-  const pendingJobs = jobs.filter(j => j.status === JobStatus.PENDING);
+  const pendingJobs = useMemo(() => jobs.filter(j => j.status === JobStatus.PENDING), [jobs]);
 
   useEffect(() => {
     if (organizationId) {
@@ -33,6 +33,7 @@ const Leads: React.FC = () => {
     const { data, error } = await supabase
       .from('leads')
       .select('*')
+      .eq('organization_id', organizationId)
       .eq('status', 'new')
       .order('created_at', { ascending: false });
 
@@ -113,7 +114,7 @@ const Leads: React.FC = () => {
     fetchLeads();
   };
 
-  const combinedLeads = [
+  const combinedLeads = useMemo(() => [
     ...leads.map(l => ({ ...l, isJob: false, isEmbed: false })),
     ...embedSubmissions.map(s => ({
       id: s.id,
@@ -139,16 +140,16 @@ const Leads: React.FC = () => {
       isEmbed: false,
       job: j
     }))
-  ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+  ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()), [leads, embedSubmissions, pendingJobs]);
 
-  const filteredLeads = combinedLeads.filter(lead => {
+  const filteredLeads = useMemo(() => combinedLeads.filter(lead => {
     const matchesSearch = lead.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       lead.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (lead.isJob ? lead.address.toLowerCase().includes(searchTerm.toLowerCase()) : (lead as any).business_name?.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesFilter = filter === 'all' || lead.type === filter;
 
     return matchesSearch && matchesFilter;
-  });
+  }), [combinedLeads, searchTerm, filter]);
 
   return (
     <div className="space-y-6">

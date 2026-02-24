@@ -4,6 +4,7 @@ import { Building, Users, CreditCard, TrendingUp, Search, RefreshCw, Zap, UserPl
 import { Link } from 'react-router-dom';
 
 import { Lead, SupportTicket } from '../types';
+import { PLATFORM_SUBSCRIPTION_PRICE_STARTER } from '../constants';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 
 interface Organization {
@@ -101,6 +102,7 @@ const SuperAdminDashboard: React.FC = () => {
     });
     const [isSavingSettings, setIsSavingSettings] = useState(false);
     const [saveSuccess, setSaveSuccess] = useState(false);
+    const [subscriptionPrice, setSubscriptionPrice] = useState(PLATFORM_SUBSCRIPTION_PRICE_STARTER);
 
     // ─── Data Fetching ───────────────────────────────────────────────────
     const fetchAllData = async (isRefresh = false) => {
@@ -108,11 +110,12 @@ const SuperAdminDashboard: React.FC = () => {
             if (isRefresh) setRefreshing(true); else setLoading(true);
             setError(null);
 
-            const [orgsResult, leadsResult, membersResult, ticketsResult] = await Promise.all([
+            const [orgsResult, leadsResult, membersResult, ticketsResult, settingsResult] = await Promise.all([
                 supabase.from('organizations').select('*').order('created_at', { ascending: false }),
                 supabase.from('leads').select('*').order('created_at', { ascending: false }),
                 supabase.from('organization_members').select('organization_id'),
-                supabase.from('support_tickets').select('*').order('created_at', { ascending: false })
+                supabase.from('support_tickets').select('*').order('created_at', { ascending: false }),
+                supabase.from('platform_settings').select('*').eq('key', 'platform_subscription_price_starter').single()
             ]);
 
             if (orgsResult.error) throw orgsResult.error;
@@ -122,6 +125,10 @@ const SuperAdminDashboard: React.FC = () => {
             setOrganizations(orgsResult.data || []);
             setLeads(leadsResult.data || []);
             setTickets(ticketsResult.data || []);
+
+            if (settingsResult.data) {
+                setSubscriptionPrice(Number(settingsResult.data.value));
+            }
 
             // Count members per org
             if (membersResult.data) {
@@ -149,7 +156,7 @@ const SuperAdminDashboard: React.FC = () => {
     const stats = useMemo(() => ({
         totalOrgs: organizations.length,
         activeSubs: organizations.filter(o => o.subscription_status === 'active').length,
-        mrr: organizations.filter(o => o.subscription_status === 'active').length * 29,
+        mrr: organizations.filter(o => o.subscription_status === 'active').length * subscriptionPrice,
         totalLeads: leads.length,
         founderLeads: leads.filter(l => l.type === 'founders_waitlist').length,
         magnetLeads: leads.filter(l => l.type === 'lead_magnet').length,
