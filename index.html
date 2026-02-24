@@ -1,64 +1,210 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>JobMow - Lawn Care Management</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            colors: {
-              lawn: {
-                50: '#f0fdf4',
-                100: '#dcfce7',
-                200: '#bbf7d0',
-                300: '#86efac',
-                400: '#4ade80',
-                500: '#22c55e',
-                600: '#16a34a',
-                700: '#15803d',
-                800: '#166534',
-                900: '#14532d',
-              }
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>JobMow - Lawn Care Management</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            lawn: {
+              50: '#f0fdf4',
+              100: '#dcfce7',
+              200: '#bbf7d0',
+              300: '#86efac',
+              400: '#4ade80',
+              500: '#22c55e',
+              600: '#16a34a',
+              700: '#15803d',
+              800: '#166534',
+              900: '#14532d',
             }
           }
         }
       }
-    </script>
-    <style>
-      /* Custom scrollbar for cleaner look */
-      ::-webkit-scrollbar {
-        width: 8px;
-        height: 8px;
+    }
+  </script>
+  <style>
+    /* Custom animations */
+    @keyframes fade-in {
+      from {
+        opacity: 0;
       }
-      ::-webkit-scrollbar-track {
-        background: #f1f1f1; 
+
+      to {
+        opacity: 1;
       }
-      ::-webkit-scrollbar-thumb {
-        background: #cbd5e1; 
-        border-radius: 4px;
+    }
+
+    @keyframes slide-in-from-bottom {
+      from {
+        transform: translateY(1rem);
+        opacity: 0;
       }
-      ::-webkit-scrollbar-thumb:hover {
-        background: #94a3b8; 
+
+      to {
+        transform: translateY(0);
+        opacity: 1;
       }
-    </style>
-  <script type="importmap">
-{
-  "imports": {
-    "recharts": "https://esm.sh/recharts@^3.7.0",
-    "react-router-dom": "https://esm.sh/react-router-dom@^7.13.0",
-    "react": "https://esm.sh/react@^19.2.4",
-    "react/": "https://esm.sh/react@^19.2.4/",
-    "lucide-react": "https://esm.sh/lucide-react@^0.564.0",
-    "@google/genai": "https://esm.sh/@google/genai@^1.41.0",
-    "react-dom/": "https://esm.sh/react-dom@^19.2.4/"
-  }
-}
-</script>
+    }
+
+    @keyframes slide-in-from-top {
+      from {
+        transform: translateY(-1rem);
+        opacity: 0;
+      }
+
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    @keyframes slide-in-from-left {
+      from {
+        transform: translateX(-1rem);
+        opacity: 0;
+      }
+
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    @keyframes slide-in-from-right {
+      from {
+        transform: translateX(1rem);
+        opacity: 0;
+      }
+
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    @keyframes zoom-in {
+      from {
+        transform: scale(0.95);
+        opacity: 0;
+      }
+
+      to {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+
+    @keyframes bounce-subtle {
+
+      0%,
+      100% {
+        transform: translateY(0);
+      }
+
+      50% {
+        transform: translateY(-10px);
+      }
+    }
+
+    .animate-in {
+      animation-fill-mode: forwards;
+      animation-duration: 500ms;
+    }
+
+    .fade-in {
+      animation-name: fade-in;
+    }
+
+    .slide-in-from-bottom-4 {
+      animation-name: slide-in-from-bottom;
+    }
+
+    .slide-in-from-bottom-8 {
+      animation-name: slide-in-from-bottom;
+    }
+
+    .slide-in-from-bottom-12 {
+      animation-name: slide-in-from-bottom;
+    }
+
+    .slide-in-from-bottom-16 {
+      animation-name: slide-in-from-bottom;
+    }
+
+    .slide-in-from-top-4 {
+      animation-name: slide-in-from-top;
+    }
+
+    .slide-in-from-left-8 {
+      animation-name: slide-in-from-left;
+    }
+
+    .slide-in-from-right-8 {
+      animation-name: slide-in-from-right;
+    }
+
+    .zoom-in-95 {
+      animation-name: zoom-in;
+    }
+
+    .animate-bounce-subtle {
+      animation: bounce-subtle 3s ease-in-out infinite;
+    }
+
+    .duration-700 {
+      animation-duration: 700ms;
+    }
+
+    .duration-1000 {
+      animation-duration: 1000ms;
+    }
+
+    .delay-100 {
+      animation-delay: 100ms;
+    }
+
+    .delay-200 {
+      animation-delay: 200ms;
+    }
+
+    .delay-300 {
+      animation-delay: 300ms;
+    }
+
+    .delay-500 {
+      animation-delay: 500ms;
+    }
+
+    /* Custom scrollbar for cleaner look */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #f1f1f1;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+  </style>
+  <script type="module" src="/index.tsx"></script>
 </head>
-  <body class="bg-slate-50 text-slate-900 font-sans antialiased selection:bg-lawn-200 selection:text-lawn-900">
-    <div id="root"></div>
-  </body>
+
+<body class="bg-slate-50 text-slate-900 font-sans antialiased selection:bg-lawn-200 selection:text-lawn-900">
+  <div id="root"></div>
+</body>
+
 </html>

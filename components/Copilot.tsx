@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useJobs } from '../context/JobContext';
+import { generateUUID } from '../utils';
 import { askBusinessCopilot } from '../services/geminiService';
 import { MessageSquare, X, Send, Sparkles, Loader2, Bot } from 'lucide-react';
 
@@ -23,7 +24,7 @@ const Copilot: React.FC = () => {
       timestamp: new Date()
     }
   ]);
-  
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -37,7 +38,7 @@ const Copilot: React.FC = () => {
 
   useEffect(() => {
     if (isOpen && inputRef.current) {
-        setTimeout(() => inputRef.current?.focus(), 100);
+      setTimeout(() => inputRef.current?.focus(), 100);
     }
   }, [isOpen]);
 
@@ -46,7 +47,7 @@ const Copilot: React.FC = () => {
     if (!input.trim() || isLoading) return;
 
     const userMsg: Message = {
-      id: crypto.randomUUID(),
+      id: generateUUID(),
       sender: 'user',
       text: input,
       timestamp: new Date()
@@ -57,17 +58,26 @@ const Copilot: React.FC = () => {
     setIsLoading(true);
 
     // Call AI
-    const responseText = await askBusinessCopilot(userMsg.text, { jobs, expenses });
-
-    const aiMsg: Message = {
-      id: crypto.randomUUID(),
-      sender: 'ai',
-      text: responseText,
-      timestamp: new Date()
-    };
-
-    setMessages(prev => [...prev, aiMsg]);
-    setIsLoading(false);
+    try {
+      const responseText = await askBusinessCopilot(userMsg.text, { jobs, expenses });
+      const aiMsg: Message = {
+        id: generateUUID(),
+        sender: 'ai',
+        text: responseText,
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, aiMsg]);
+    } catch (error) {
+      const errorMsg: Message = {
+        id: generateUUID(),
+        sender: 'ai',
+        text: "I'm sorry, I'm having trouble thinking right now. Please check your API key or connection.",
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, errorMsg]);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   if (!isOpen) {
@@ -95,7 +105,7 @@ const Copilot: React.FC = () => {
             <p className="text-xs text-slate-400">Powered by Gemini AI</p>
           </div>
         </div>
-        <button 
+        <button
           onClick={() => setIsOpen(false)}
           className="text-slate-400 hover:text-white transition-colors"
         >
@@ -106,20 +116,19 @@ const Copilot: React.FC = () => {
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50">
         {messages.map((msg) => (
-          <div 
-            key={msg.id} 
+          <div
+            key={msg.id}
             className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
           >
-            <div 
-              className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
-                msg.sender === 'user' 
-                  ? 'bg-lawn-600 text-white rounded-br-none' 
-                  : 'bg-white text-slate-700 border border-slate-200 rounded-bl-none shadow-sm'
-              }`}
+            <div
+              className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${msg.sender === 'user'
+                ? 'bg-lawn-600 text-white rounded-br-none'
+                : 'bg-white text-slate-700 border border-slate-200 rounded-bl-none shadow-sm'
+                }`}
             >
               <div className="whitespace-pre-wrap">{msg.text}</div>
               <div className={`text-[10px] mt-1 opacity-70 ${msg.sender === 'user' ? 'text-lawn-100 text-right' : 'text-slate-400'}`}>
-                {msg.timestamp.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </div>
             </div>
           </div>
@@ -146,7 +155,7 @@ const Copilot: React.FC = () => {
             placeholder="Ask about profit, jobs, or draft emails..."
             className="w-full pl-4 pr-12 py-3 bg-slate-100 border border-transparent focus:bg-white focus:border-lawn-500 focus:ring-2 focus:ring-lawn-200 rounded-xl outline-none text-sm transition-all"
           />
-          <button 
+          <button
             type="submit"
             disabled={!input.trim() || isLoading}
             className="absolute right-2 top-2 p-1.5 bg-lawn-600 text-white rounded-lg hover:bg-lawn-700 disabled:opacity-50 disabled:bg-slate-400 transition-colors"

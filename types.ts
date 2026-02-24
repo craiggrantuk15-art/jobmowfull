@@ -12,6 +12,18 @@ export enum JobStatus {
   CANCELLED = 'Cancelled'
 }
 
+export enum UserRole {
+  ADMIN = 'admin',
+  USER = 'user'
+}
+
+export interface User {
+  id: string;
+  email: string;
+  name: string;
+  role: UserRole;
+}
+
 export enum PaymentStatus {
   UNPAID = 'Unpaid',
   PAID = 'Paid'
@@ -44,19 +56,21 @@ export enum ExpenseCategory {
 
 export enum CommunicationType {
   SMS = 'SMS',
-  EMAIL = 'Email',
-  CALL = 'Call',
-  SYSTEM = 'System'
+  EMAIL = 'EMAIL',
+  CALL = 'CALL',
+  SYSTEM = 'SYSTEM'
 }
 
 export interface Communication {
   id: string;
-  customerId: string; // Aggregated ID: name-address
-  jobId?: string;
+  customer_id: string; // Foreign key to customers table
+  job_id?: string; // Optional FK to jobs
+  organization_id: string;
   type: CommunicationType;
   subject: string;
   body: string;
-  date: string; // ISO string
+  sent_at: string; // ISO string
+  created_at?: string;
 }
 
 export interface BusinessSettings {
@@ -87,6 +101,29 @@ export interface BusinessSettings {
   fuelSurchargeRadius: number; // km
   fuelSurchargeAmount: number; // currency amount
   businessBasePostcode: string; // Used for distance check
+  // Manual Pricing Settings (Replacing AI)
+  smallLawnPrice: number;
+  mediumLawnPrice: number;
+  largeLawnPrice: number;
+  estateLawnPrice: number;
+  extraFertilizerPrice: number;
+  extraEdgingPrice: number;
+  extraWeedingPrice: number;
+  extraLeafCleanupPrice: number;
+  // Weather Integration
+  weatherApiKey?: string;
+  weatherCity?: string;
+  latitude?: number;
+  longitude?: number;
+  // Mowability Settings
+  mowabilityRainThreshold?: number; // % chance
+  mowabilityWindThreshold?: number; // km/h
+  mowabilityTempMin?: number; // Celsius
+  mowabilityTempMax?: number; // Celsius
+  // API Settings
+  postcodeApiUrl?: string;
+  temperatureUnit?: 'C' | 'F';
+  onboardingCompleted?: boolean;
 }
 
 export interface Expense {
@@ -100,47 +137,67 @@ export interface Expense {
 
 export interface Customer {
   id: string;
+  organization_id: string;
   name: string;
   email: string;
   phone: string;
   address: string;
   postcode: string;
+  created_at?: string;
 }
 
 export interface Job {
   id: string;
-  customerId: string;
-  customerName: string;
+  organization_id: string; // Added to match likely DB schema
+
+  // Service Details
+  service_id?: string;
+  service_name?: string;
+
+  customer_id: string;
+  customer_name: string;
   email?: string; // Contact info
   phone?: string; // Contact info
   address: string;
   postcode: string;
   zone?: string;
   frequency: Frequency;
-  lawnSize: LawnSize;
-  propertyType?: PropertyType;
-  priceQuote: number;
-  durationMinutes: number;
+  lawn_size?: LawnSize; // Optional for non-mowing
+  property_type?: PropertyType;
+  price_quote: number;
+  duration_minutes: number;
   status: JobStatus;
-  paymentStatus?: PaymentStatus;
-  scheduledDate?: string; // ISO date string
-  completedDate?: string; // ISO date string
+  payment_status?: PaymentStatus;
+  scheduled_date?: string; // ISO date string
+  completed_date?: string; // ISO date string
   notes?: string;
-  leadSource?: string;
-  paymentMethod?: string;
+  lead_source?: string;
+  payment_method?: string;
   photos?: string[]; // Array of base64 strings
-  actualDurationMinutes?: number;
-  timerStartTime?: string; // ISO string
-  isTimerRunning?: boolean;
-  isRainDelayed?: boolean;
+  actual_duration_minutes?: number;
+  timer_start_time?: string; // ISO string
+  is_timer_running?: boolean;
+  is_rain_delayed?: boolean;
+}
+
+
+export interface Service {
+  id: string;
+  name: string;
+  description: string;
+  category: 'Outdoor' | 'Indoor' | 'Maintenance';
+  active: boolean;
 }
 
 export interface QuoteRequest {
-  lawnSize: LawnSize;
+  service_id: string;
+  service_name: string;
+  lawn_size?: LawnSize; // Optional for non-mowing services
   frequency: Frequency;
-  propertyType: PropertyType;
+  property_type: PropertyType;
   address: string;
   extras: string[];
+  description?: string; // For custom service details
 }
 
 export interface QuoteResponse {
@@ -161,4 +218,35 @@ export interface OptimizationResult {
   reasoning: string;
   efficiencyScore: number;
   groundingUrls?: string[];
+}
+
+export interface JobStats {
+  pending: number;
+  scheduled: number;
+  completed: number;
+  revenue: number;
+  outstanding: number;
+  totalExpenses: number;
+  netProfit: number;
+}
+
+export interface Lead {
+  id: string;
+  type: 'lead_magnet' | 'founders_waitlist';
+  name: string;
+  email: string;
+  business_name?: string;
+  crew_size?: string;
+  created_at: string;
+}
+
+export interface SupportTicket {
+  id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  subject?: string;
+  message: string;
+  status: 'new' | 'in_progress' | 'resolved';
+  created_at: string;
 }

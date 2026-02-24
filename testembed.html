@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JobMow Embed Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            padding: 40px;
+            background-color: #f8fafc;
+            color: #1e293b;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 24px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            margin-bottom: 24px;
+            font-size: 24px;
+            font-weight: 800;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>External Website Test Page</h1>
+        <p>This page simulates a customer's website where the JobMow Quote Widget is embedded.</p>
+        <hr style="margin: 32px 0; border: 0; border-top: 1px solid #e2e8f0;">
+
+        <!-- JobMow Quote Widget -->
+        <div id="jobmow-quote-widget"></div>
+        <script src="http://localhost:3001/embed.js" data-org="62c54bcc-7e20-4dbf-bc52-40232cc2f90d"
+            data-accent="#16a34a"></script>
+    </div>
+</body>
+
+</html>

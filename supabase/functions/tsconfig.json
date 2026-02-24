@@ -1,0 +1,15 @@
+{
+    "compilerOptions": {
+        "module": "esnext",
+        "target": "esnext",
+        "lib": [
+            "esnext",
+            "dom",
+            "dom.iterable"
+        ],
+        "skipLibCheck": true,
+        "moduleResolution": "node",
+        "allowSyntheticDefaultImports": true,
+        "strict": true
+    }
+}
