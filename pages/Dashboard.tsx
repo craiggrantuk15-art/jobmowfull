@@ -259,47 +259,72 @@ const Dashboard: React.FC = () => {
         </div>
       )}
 
-      {/* Header & Greeting */}
-      <div className="relative mb-8 p-1">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-lawn-500/10 rounded-full blur-[100px] -mr-16 -mt-16 -z-10 animate-pulse"></div>
-        <div className="absolute bottom-0 left-0 w-48 h-48 bg-emerald-500/10 rounded-full blur-[80px] -ml-12 -mb-12 -z-10"></div>
+      {/* Hero Section */}
+      <div className="relative mb-10 group/hero">
+        {/* Main Hero Card */}
+        <div className="relative overflow-hidden bg-white/70 backdrop-blur-md rounded-[2.5rem] border border-white/50 shadow-sm p-8 md:p-12 transition-all duration-500 hover:shadow-xl hover:shadow-lawn-500/5">
+          {/* Animated Background Accents */}
+          <div className="absolute top-0 right-0 w-80 h-80 bg-lawn-500/5 rounded-full blur-[100px] -mr-32 -mt-32 group-hover/hero:bg-lawn-500/10 transition-colors duration-1000"></div>
+          <div className="absolute bottom-0 left-0 w-64 h-64 bg-emerald-500/5 rounded-full blur-[80px] -ml-24 -mb-24"></div>
 
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-xs font-semibold border border-emerald-500/20 mb-4">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-              Live Business Dashboard
-            </div>
-            <h1 className="text-3xl md:text-5xl font-extrabold text-white mb-3 tracking-tight">
-              {greeting}, <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-300">{user?.name?.split(' ')[0] || settings.businessName.split(' ')[0]}</span>
-            </h1>
-            <p className="text-slate-400 max-w-lg text-lg mb-6 leading-relaxed">
-              Here's the pulse of your lawn care business. You have <span className="text-white font-bold">{stats.scheduledToday} jobs</span> scheduled for today.
-            </p>
+          <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-12">
+            <div className="flex-1 max-w-2xl">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-50 text-emerald-600 text-[10px] font-black uppercase tracking-widest border border-emerald-100 mb-6 animate-in fade-in slide-in-from-left-8 duration-700">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                Live Intelligence Active
+              </div>
 
-            <div className="flex flex-wrap gap-3 mt-2">
-              <Link to="/admin/leads" className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl text-sm font-bold transition-all border border-white/10 backdrop-blur-sm">
-                <Sparkles size={16} className="text-amber-400" />
-                Add Lead
-              </Link>
-              <Link to="/admin/expenses" className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl text-sm font-bold transition-all border border-white/10 backdrop-blur-sm">
-                <Wallet size={16} className="text-purple-400" />
-                Log Expense
-              </Link>
-              <Link to="/admin/schedule" className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl text-sm font-bold transition-all border border-white/10 backdrop-blur-sm">
-                <MapIcon size={16} className="text-blue-400" />
-                View Map
-              </Link>
+              <h1 className="text-4xl md:text-6xl font-black text-slate-900 mb-4 tracking-tight leading-[1.1] animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100">
+                {greeting}, <br />
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-500">{user?.name?.split(' ')[0] || settings.businessName.split(' ')[0]}</span>
+              </h1>
+
+              <p className="text-slate-500 text-lg md:text-xl mb-8 leading-relaxed max-w-lg animate-in fade-in slide-in-from-bottom-4 duration-700 delay-200 font-medium">
+                Your business is performing <span className="text-emerald-600 font-bold italic">at peak efficiency</span> today with <span className="text-slate-900 font-black underline decoration-emerald-500/30 decoration-4 underline-offset-4">{stats.scheduledToday} jobs</span> on the schedule.
+              </p>
+
+              <div className="flex flex-wrap gap-4 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300">
+                <Link to="/admin/jobs" className="flex items-center gap-2 px-8 py-4 bg-slate-900 hover:bg-slate-800 text-white rounded-2xl font-black transition-all shadow-xl shadow-slate-900/10 active:scale-95 group/btn">
+                  <Plus size={20} className="group-hover/btn:rotate-90 transition-transform" />
+                  CREATE NEW JOB
+                </Link>
+                <Link to="/admin/schedule" className="flex items-center gap-3 px-8 py-4 bg-white/50 hover:bg-white text-slate-700 border border-slate-200 rounded-2xl font-black transition-all hover:shadow-md active:scale-95">
+                  <MapIcon size={20} className="text-blue-500" />
+                  Route Map
+                </Link>
+              </div>
             </div>
-          </div>
-          <div className="flex flex-col gap-3">
-            <Link to="/admin/jobs" className="flex items-center justify-center gap-2 px-8 py-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl font-black transition-all shadow-xl shadow-emerald-500/20 active:scale-95 group">
-              <Plus size={24} className="group-hover:rotate-90 transition-transform" />
-              CREATE NEW JOB
-            </Link>
-            <div className="flex items-center gap-2 px-4 py-2 bg-slate-800/50 rounded-xl border border-slate-700/50 justify-center">
-              <Zap size={14} className="text-amber-400 fill-amber-400" />
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Business status: Optimal</span>
+
+            {/* Quick Stats Grid within Hero */}
+            <div className="grid grid-cols-2 gap-4 lg:w-[400px] animate-in fade-in slide-in-from-right-8 duration-700 delay-500">
+              <div className="bg-white/50 p-6 rounded-3xl border border-slate-100 hover:border-indigo-200 transition-all hover:shadow-lg hover:shadow-indigo-500/5 group/stat">
+                <Users size={20} className="text-indigo-500 mb-3 group-hover/stat:scale-110 transition-transform" />
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">New Leads</p>
+                <p className="text-2xl font-black text-slate-900">{stats.pending}</p>
+              </div>
+              <div className="bg-white/50 p-6 rounded-3xl border border-slate-100 hover:border-emerald-200 transition-all hover:shadow-lg hover:shadow-emerald-500/5 group/stat">
+                <TrendingUp size={20} className="text-emerald-500 mb-3 group-hover/stat:scale-110 transition-transform" />
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Revenue</p>
+                <p className="text-2xl font-black text-slate-900">£{stats.revenue.toLocaleString()}</p>
+              </div>
+              <div className="col-span-2 bg-gradient-to-br from-slate-900 to-slate-800 p-6 rounded-3xl border border-slate-700 shadow-xl group/stat relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-4 opacity-10 group-hover/stat:opacity-20 transition-opacity">
+                  <Sparkles size={40} className="text-white" />
+                </div>
+                <div className="relative z-10">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Goal Progress</p>
+                  <div className="flex items-end justify-between mb-2">
+                    <p className="text-2xl font-black text-white">{goalProgress.toFixed(0)}%</p>
+                    <p className="text-xs font-bold text-slate-400">Target: £{monthlyRevenueGoal.toLocaleString()}</p>
+                  </div>
+                  <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-gradient-to-r from-emerald-500 to-lawn-400 rounded-full transition-all duration-1000"
+                      style={{ width: `${goalProgress}%` }}
+                    ></div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
