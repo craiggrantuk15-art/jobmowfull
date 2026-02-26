@@ -123,9 +123,21 @@ const JobDetailModal: React.FC<JobDetailModalProps> = ({ job: initialJob, onClos
               </span>
             )}
           </div>
-          <p className="text-slate-500 text-sm flex items-center gap-1.5">
-            <MapPin size={14} /> {job.address}
-          </p>
+          <div className="flex items-center justify-between pr-8">
+            <p className="text-slate-500 text-sm flex items-center gap-1.5">
+              <MapPin size={14} /> {job.address}
+            </p>
+            {job.latitude && job.longitude && (
+              <a
+                href={`https://www.google.com/maps?q=${job.latitude},${job.longitude}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 text-[10px] text-blue-600 hover:text-blue-700 font-bold uppercase tracking-widest bg-blue-50 px-2 py-1 rounded-lg border border-blue-100"
+              >
+                <MapPin size={12} /> Sat-Link
+              </a>
+            )}
+          </div>
         </div>
 
         <div className="p-6 space-y-6 overflow-y-auto flex-1">
@@ -137,7 +149,14 @@ const JobDetailModal: React.FC<JobDetailModalProps> = ({ job: initialJob, onClos
                 </div>
                 <p className="text-lg font-bold text-slate-900">{settings.currency}{job.price_quote}</p>
               </div>
-              <p className="text-xs text-slate-500 mt-2">{job.frequency} • {job.lawn_size}</p>
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-2">
+                <span className="text-xs text-slate-500">{job.frequency} • {job.lawn_size}</span>
+                {job.lawn_area && (
+                  <span className="text-[10px] font-black bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded uppercase tracking-tighter">
+                    {job.lawn_area} {settings.areaUnit}
+                  </span>
+                )}
+              </div>
             </div>
 
             <div className={`p-4 rounded-lg border flex flex-col justify-between ${job.is_timer_running ? 'bg-indigo-50 border-indigo-200 shadow-sm' : 'bg-slate-50 border-slate-100'}`}>

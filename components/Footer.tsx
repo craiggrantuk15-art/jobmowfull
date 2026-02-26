@@ -35,7 +35,6 @@ const Footer: React.FC = () => {
                             <li><Link to="/book" className="text-slate-500 hover:text-lawn-600 transition-colors">Booking Widget</Link></li>
                             <li><Link to="/toolkit" className="text-slate-500 hover:text-lawn-600 transition-colors">Free Toolkit</Link></li>
                             <li><Link to="/founders" className="text-slate-500 hover:text-lawn-600 transition-colors">Waitlist</Link></li>
-                            <li><Link to="/pricing" className="text-slate-500 hover:text-lawn-600 transition-colors">Pricing</Link></li>
                         </ul>
                     </div>
 
@@ -44,7 +43,6 @@ const Footer: React.FC = () => {
                         <ul className="space-y-3">
                             <li><Link to="/about" className="text-slate-500 hover:text-lawn-600 transition-colors">About Us</Link></li>
                             <li><a href="#" className="text-slate-500 hover:text-lawn-600 transition-colors">Blog</a></li>
-                            <li><a href="#" className="text-slate-500 hover:text-lawn-600 transition-colors">Careers</a></li>
                             <li><Link to="/contact" className="text-slate-500 hover:text-lawn-600 transition-colors">Contact</Link></li>
                         </ul>
                     </div>
@@ -52,7 +50,7 @@ const Footer: React.FC = () => {
                     <div className="space-y-6">
                         <h4 className="text-sm font-bold text-slate-900 uppercase tracking-widest">Support</h4>
                         <ul className="space-y-3">
-                            <li><Link to="/login" className="text-slate-500 hover:text-lawn-600 transition-colors">Admin Login</Link></li>
+                            <li><Link to="/login" className="text-slate-500 hover:text-lawn-600 transition-colors">Login</Link></li>
                             <li><Link to="/docs" className="text-slate-500 hover:text-lawn-600 transition-colors">Documentation</Link></li>
                             <li><Link to="/help" className="text-slate-500 hover:text-lawn-600 transition-colors">Help Center</Link></li>
                             <li><Link to="/status" className="text-slate-500 hover:text-lawn-600 transition-colors">API Status</Link></li>

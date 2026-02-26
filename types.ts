@@ -17,6 +17,23 @@ export enum UserRole {
   USER = 'user'
 }
 
+export enum PlanLevel {
+  STARTER = 'starter',
+  PRO = 'pro',
+  ENTERPRISE = 'enterprise'
+}
+
+export interface PlanFeatures {
+  ai_quoting: boolean;
+  route_optimization: boolean;
+  sms_notifications: boolean;
+  unlimited_jobs: boolean;
+  priority_support: boolean;
+  custom_integrations: boolean;
+  fleet_tracking: boolean;
+  lawn_measurement: boolean;
+}
+
 export interface User {
   id: string;
   email: string;
@@ -110,6 +127,11 @@ export interface BusinessSettings {
   extraEdgingPrice: number;
   extraWeedingPrice: number;
   extraLeafCleanupPrice: number;
+  // Lawn Measurement Settings
+  googleMapsApiKey?: string;
+  enableLawnMeasurement?: boolean;
+  pricePerUnitArea?: number;
+  areaUnit?: 'm2' | 'sqft';
   // Weather Integration
   weatherApiKey?: string;
   weatherCity?: string;
@@ -144,6 +166,8 @@ export interface Customer {
   phone: string;
   address: string;
   postcode: string;
+  latitude?: number;
+  longitude?: number;
   created_at?: string;
 }
 
@@ -179,6 +203,9 @@ export interface Job {
   timer_start_time?: string; // ISO string
   is_timer_running?: boolean;
   is_rain_delayed?: boolean;
+  lawn_area?: number;
+  latitude?: number;
+  longitude?: number;
 }
 
 
@@ -198,6 +225,9 @@ export interface QuoteRequest {
   property_type: PropertyType;
   address: string;
   extras: string[];
+  lawn_area?: number;
+  latitude?: number;
+  longitude?: number;
   description?: string; // For custom service details
 }
 

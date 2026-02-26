@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
-import { Job, JobStatus, PaymentStatus, QuoteRequest, Expense, ExpenseCategory, Frequency, BusinessSettings, Communication, CommunicationType, Customer, JobStats } from '../types';
+import { Job, JobStatus, PaymentStatus, QuoteRequest, Expense, ExpenseCategory, Frequency, BusinessSettings, Communication, CommunicationType, Customer, JobStats, PlanLevel, PlanFeatures } from '../types';
 import { MOCK_JOBS } from '../constants';
 import { sendNotification } from '../services/notificationService';
 import { supabase } from '../lib/supabase';
@@ -14,7 +14,10 @@ interface JobContextType {
   settings: BusinessSettings;
   subscriptionStatus: string | undefined;
   billingCustomerId: string | undefined;
+  planLevel: PlanLevel;
+  features: PlanFeatures;
   loading: boolean;
+  isFeatureEnabled: (feature: keyof PlanFeatures) => boolean;
   addJob: (job: Job) => Promise<void>;
   addExpense: (expense: Expense) => Promise<void>;
   deleteExpense: (id: string) => Promise<void>;
@@ -77,6 +80,17 @@ export const JobProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const { organizationId, user } = useAuth();
   const [jobs, setJobs] = useState<Job[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
+  const [planLevel, setPlanLevel] = useState<PlanLevel>(PlanLevel.STARTER);
+  const [features, setFeatures] = useState<PlanFeatures>({
+    ai_quoting: false,
+    route_optimization: false,
+    sms_notifications: false,
+    unlimited_jobs: false,
+    priority_support: false,
+    custom_integrations: false,
+    fleet_tracking: false,
+    lawn_measurement: false
+  });
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [communications, setCommunications] = useState<Communication[]>([]);
   const [settings, setSettings] = useState<BusinessSettings>(DEFAULT_SETTINGS);
@@ -143,7 +157,7 @@ export const JobProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     const { data: orgData } = await supabase
       .from('organizations')
-      .select('settings, subscription_status, billing_customer_id')
+      .select('settings, subscription_status, billing_customer_id, plan_level')
       .eq('id', organizationId)
       .single();
 
@@ -157,11 +171,38 @@ export const JobProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
       setSubscriptionStatus(orgData.subscription_status || undefined);
       setBillingCustomerId(orgData.billing_customer_id || undefined);
+      if (orgData.plan_level) {
+        setPlanLevel(orgData.plan_level as PlanLevel);
+        // Fetch features for this plan
+        const { data: featureData } = await supabase
+          .from('plan_features')
+          .select('features')
+          .eq('plan_level', orgData.plan_level)
+          .single();
+
+        if (featureData) {
+          setFeatures(featureData.features as PlanFeatures);
+        }
+      }
     }
     setLoading(false);
   };
 
+  const isFeatureEnabled = (feature: keyof PlanFeatures) => {
+    return !!features[feature];
+  };
+
   const addJob = async (job: Job) => {
+    // Check for job limits if not unlimited
+    if (!isFeatureEnabled('unlimited_jobs')) {
+      const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM
+      const monthlyJobCount = jobs.filter(j => j.created_at?.startsWith(currentMonth)).length;
+
+      if (monthlyJobCount >= 25) {
+        throw new Error("Monthly job limit reached. Please upgrade your plan for unlimited jobs.");
+      }
+    }
+
     let targetOrgId = organizationId || publicOrganizationId || job.organization_id;
 
     // Last resort fetch if still missing
@@ -214,7 +255,9 @@ export const JobProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         email: job.email || null,
         phone: job.phone || null,
         address: job.address,
-        postcode: job.postcode
+        postcode: job.postcode,
+        latitude: job.latitude,
+        longitude: job.longitude
       };
 
       const { error: custError } = await supabase
@@ -671,6 +714,9 @@ export const JobProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       addCustomer,
       subscriptionStatus,
       billingCustomerId,
+      planLevel,
+      features,
+      isFeatureEnabled,
       loading
     }}>
       {children}

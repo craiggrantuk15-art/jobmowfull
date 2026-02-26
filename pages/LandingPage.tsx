@@ -206,7 +206,7 @@ const LandingPage: React.FC = () => {
                         }
                     ].map((feature, idx) => (
                         <div key={idx} className="group p-8 rounded-[2rem] bg-white border border-slate-100 hover:border-lawn-200 hover:shadow-2xl hover:shadow-lawn-100/50 transition-all duration-500">
-                            <div className={`w - 14 h - 14 ${feature.color} rounded - 2xl flex items - center justify - center mb - 6 group - hover: scale - 110 transition - transform duration - 500`}>
+                            <div className={`w-14 h-14 ${feature.color} rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500`}>
                                 {React.cloneElement(feature.icon as React.ReactElement, { size: 28 })}
                             </div>
                             <h4 className="text-xl font-bold text-slate-900 mb-4">{feature.title}</h4>
@@ -288,13 +288,13 @@ const LandingPage: React.FC = () => {
                     <div className="bg-slate-100 p-1.5 rounded-full inline-flex items-center">
                         <button
                             onClick={() => setIsAnnual(false)}
-                            className={`px - 6 py - 2.5 rounded - full text - sm font - bold transition - all ${!isAnnual ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'} `}
+                            className={`px-6 py-2.5 rounded-full text-sm font-bold transition-all ${!isAnnual ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
                         >
                             Monthly
                         </button>
                         <button
                             onClick={() => setIsAnnual(true)}
-                            className={`px - 6 py - 2.5 rounded - full text - sm font - bold transition - all flex items - center gap - 2 ${isAnnual ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'} `}
+                            className={`px-6 py-2.5 rounded-full text-sm font-bold transition-all flex items-center gap-2 ${isAnnual ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
                         >
                             Annually <span className="text-[10px] font-black uppercase text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded-full tracking-widest">Save 20%</span>
                         </button>
@@ -331,7 +331,7 @@ const LandingPage: React.FC = () => {
                             recommended: false
                         }
                     ].map((plan, idx) => (
-                        <div key={idx} className={`relative p - 10 rounded - [2.5rem] border - 2 flex flex - col transition - all duration - 500 hover: -translate - y - 2 hover: shadow - 2xl ${plan.recommended ? 'border-transparent bg-gradient-to-b from-slate-900 to-slate-800 shadow-2xl shadow-slate-900/20 z-10' : 'border-slate-100 bg-white hover:border-slate-200'} `}>
+                        <div key={idx} className={`relative p-10 rounded-[2.5rem] border-2 flex flex-col transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl ${plan.recommended ? 'border-transparent bg-gradient-to-b from-slate-900 to-slate-800 shadow-2xl shadow-slate-900/20 z-10' : 'border-slate-100 bg-white hover:border-slate-200'}`}>
                             {plan.recommended && (
                                 <div className="absolute -top-5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-lawn-500 to-emerald-500 text-white text-[10px] font-black uppercase tracking-[0.2em] px-6 py-2 rounded-full shadow-lg">
                                     Most Popular
@@ -339,26 +339,26 @@ const LandingPage: React.FC = () => {
                             )}
 
                             <div className="mb-8">
-                                <h4 className={`text - xl font - bold mb - 2 ${plan.recommended ? 'text-white' : 'text-slate-900'} `}>{plan.name}</h4>
+                                <h4 className={`text-xl font-bold mb-2 ${plan.recommended ? 'text-white' : 'text-slate-900'}`}>{plan.name}</h4>
                                 <div className="flex items-baseline gap-1">
-                                    <span className={`text - 4xl font - black ${plan.recommended ? 'text-white' : 'text-slate-900'} `}>{isAnnual ? plan.priceAnnual : plan.priceMonthly}</span>
-                                    <span className={`font - bold ${plan.recommended ? 'text-slate-400' : 'text-slate-400'} `}>/month</span>
+                                    <span className={`text-4xl font-black ${plan.recommended ? 'text-white' : 'text-slate-900'}`}>{isAnnual ? plan.priceAnnual : plan.priceMonthly}</span>
+                                    <span className={`font-bold ${plan.recommended ? 'text-slate-400' : 'text-slate-400'}`}>/month</span>
                                 </div>
-                                <p className={`text - sm mt - 4 ${plan.recommended ? 'text-slate-400' : 'text-slate-500'} `}>{plan.desc}</p>
+                                <p className={`text-sm mt-4 ${plan.recommended ? 'text-slate-400' : 'text-slate-500'}`}>{plan.desc}</p>
                             </div>
 
                             <div className="space-y-5 mb-10 flex-1">
                                 {plan.features.map((f, i) => (
                                     <div key={i} className="flex items-start gap-3">
                                         <CheckCircle size={18} className={plan.recommended ? 'text-lawn-400' : 'text-slate-300'} />
-                                        <span className={`text - sm font - medium ${plan.recommended ? 'text-slate-200' : 'text-slate-600'} `}>{f}</span>
+                                        <span className={`text-sm font-medium ${plan.recommended ? 'text-slate-200' : 'text-slate-600'}`}>{f}</span>
                                     </div>
                                 ))}
                             </div>
 
                             <Link
                                 to="/login?isLogin=false"
-                                className={`w - full py - 4 px - 6 rounded - 2xl font - black text - center transition - all ${plan.recommended ? 'bg-lawn-500 text-white hover:bg-lawn-400 shadow-xl shadow-lawn-900/20' : 'bg-slate-50 text-slate-600 hover:bg-slate-100'} `}
+                                className={`w-full py-4 px-6 rounded-2xl font-black text-center transition-all ${plan.recommended ? 'bg-lawn-500 text-white hover:bg-lawn-400 shadow-xl shadow-lawn-900/20' : 'bg-slate-50 text-slate-600 hover:bg-slate-100'}`}
                             >
                                 {plan.cta}
                             </Link>

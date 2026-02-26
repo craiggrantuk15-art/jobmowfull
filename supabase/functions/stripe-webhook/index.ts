@@ -9,6 +9,13 @@ const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') as string, {
 
 const endpointSecret = Deno.env.get('STRIPE_WEBHOOK_SECRET')
 
+// Price ID to Plan Level Mapping (Configure these in Supabase Env Vars)
+const PRICE_MAP: Record<string, string> = {
+    [Deno.env.get('STRIPE_PRICE_STARTER') || 'price_starter']: 'starter',
+    [Deno.env.get('STRIPE_PRICE_PRO') || 'price_pro']: 'pro',
+    [Deno.env.get('STRIPE_PRICE_ENTERPRISE') || 'price_enterprise']: 'enterprise',
+}
+
 serve(async (req) => {
     const signature = req.headers.get('stripe-signature')
 
@@ -44,12 +51,16 @@ serve(async (req) => {
                     const customerId = session.customer;
                     const subscriptionId = session.subscription;
 
+                    const priceId = session.line_items?.data[0]?.price?.id || session.metadata?.price_id;
+                    const planLevel = priceId ? PRICE_MAP[priceId] : 'starter';
+
                     // Update Organization Billing Details
                     await supabaseClient
                         .from('organizations')
                         .update({
                             billing_customer_id: customerId,
-                            subscription_status: 'active'
+                            subscription_status: 'active',
+                            plan_level: planLevel || 'starter'
                         })
                         .eq('id', organizationId);
 
@@ -112,9 +123,15 @@ serve(async (req) => {
                         .single();
 
                     if (org) {
+                        const priceId = subscription.items.data[0].price.id;
+                        const planLevel = PRICE_MAP[priceId] || 'starter';
+
                         await supabaseClient
                             .from('organizations')
-                            .update({ subscription_status: subscription.status })
+                            .update({
+                                subscription_status: subscription.status,
+                                plan_level: planLevel
+                            })
                             .eq('id', org.id);
 
                         // Update subscription with org id if we missed it

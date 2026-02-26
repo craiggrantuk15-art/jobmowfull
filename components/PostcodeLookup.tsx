@@ -4,16 +4,13 @@ import { getAddressesFromPostcode, AddressSuggestion } from '../services/address
 import { useJobs } from '../context/JobContext';
 
 interface PostcodeLookupProps {
-    onAddressSelected: (address: string, postcode: string) => void;
+    onAddressSelected: (address: string, postcode: string, latitude?: number, longitude?: number) => void;
     initialPostcode?: string;
 }
 
 const PostcodeLookup: React.FC<PostcodeLookupProps> = ({ onAddressSelected, initialPostcode = '' }) => {
     const { settings } = useJobs();
-    const [postcode, setPostcode] = useState(initialPostcode);
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-    const [showManual, setShowManual] = useState(false);
+    const [results, setResults] = useState<AddressSuggestion[]>([]);
 
     const handleSearch = async (e?: React.FormEvent) => {
         if (e) e.preventDefault();
@@ -25,22 +22,20 @@ const PostcodeLookup: React.FC<PostcodeLookupProps> = ({ onAddressSelected, init
 
         setIsLoading(true);
         setError(null);
+        setResults([]);
 
         try {
-            const results = await getAddressesFromPostcode(postcode, settings.postcodeApiUrl);
+            const data = await getAddressesFromPostcode(postcode, settings.postcodeApiUrl);
 
-            if (results.length === 0) {
+            if (data.length === 0) {
                 setError('No addresses found or invalid postcode. Please enter manually.');
-                // Optional: automatically show manual entry on failure?
             } else {
-                // Since postcodes.io only returns metadata (Town/District), we don't have a list to pick from.
-                // We just take the first result (which contains the town/county) and pass it back.
-                // The parent component should then allow editing of the first line.
-                const result = results[0];
-                onAddressSelected(result.formatted, result.postcode);
-
-                // We clear the search box logic effectively because we've "selected" the general area.
-                // You might want to show a success message or just let the parent form take over.
+                setResults(data);
+                if (data.length === 1 && !data[0].line1) {
+                    // This is the fallback/free result, auto-select it
+                    const result = data[0];
+                    onAddressSelected(result.formatted, result.postcode, result.latitude, result.longitude);
+                }
             }
         } catch (err) {
             setError('Error searching for postcode. Please try again or enter manually.');
@@ -49,9 +44,19 @@ const PostcodeLookup: React.FC<PostcodeLookupProps> = ({ onAddressSelected, init
         }
     };
 
+    const handleSelectAddress = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const index = parseInt(e.target.value);
+        if (isNaN(index)) return;
+
+        const result = results[index];
+        onAddressSelected(result.formatted, result.postcode, result.latitude, result.longitude);
+        setResults([]); // Clear results after selection
+    };
+
     const toggleManual = () => {
         setShowManual(!showManual);
         setError(null);
+        setResults([]);
     };
 
     return (
@@ -85,8 +90,25 @@ const PostcodeLookup: React.FC<PostcodeLookupProps> = ({ onAddressSelected, init
                         {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
                     </div>
 
+                    {results.length > 0 && results[0].line1 && (
+                        <div className="space-y-1 animate-in fade-in slide-in-from-top-2">
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Select Address</label>
+                            <select
+                                onChange={handleSelectAddress}
+                                className="w-full px-4 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-lawn-100 focus:border-lawn-400 transition-all bg-white text-sm font-medium"
+                                defaultValue=""
+                            >
+                                <option value="" disabled>Choose an address...</option>
+                                {results.map((res, i) => (
+                                    <option key={i} value={i}>{res.formatted}</option>
+                                ))}
+                            </select>
+                        </div>
+                    )}
+
                     <div className="text-xs text-slate-500 italic">
-                        Using free postcode lookup. House number must be entered manually.
+                        Using {import.meta.env.VITE_IDEAL_POSTCODES_API_KEY ? 'Ideal Postcodes' : 'free postcode lookup'}.
+                        {!import.meta.env.VITE_IDEAL_POSTCODES_API_KEY && ' House number must be entered manually.'}
                     </div>
                 </>
             ) : null}

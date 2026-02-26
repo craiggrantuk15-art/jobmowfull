@@ -15,6 +15,8 @@ interface AggregatedCustomer {
     totalSpent: number;
     lastVisit: string | undefined;
     status: 'Active' | 'Lead' | 'Churned';
+    latitude?: number;
+    longitude?: number;
 }
 
 interface CustomerMap {
@@ -89,7 +91,9 @@ const Customers: React.FC = () => {
             totalJobs,
             totalSpent,
             lastVisit,
-            status
+            status,
+            latitude: customer.latitude,
+            longitude: customer.longitude
         };
     }), [customers, jobs]);
 
@@ -358,9 +362,21 @@ const Customers: React.FC = () => {
                                         <Edit2 size={14} /> Edit Profile
                                     </button>
                                 </div>
-                                <p className="text-slate-500 flex items-center gap-1.5 mt-1 text-sm">
-                                    <MapPin size={14} /> {selectedCustomer.address}
-                                </p>
+                                <div className="flex items-center gap-3">
+                                    <p className="text-slate-500 flex items-center gap-1.5 mt-1 text-sm">
+                                        <MapPin size={14} /> {selectedCustomer.address}
+                                    </p>
+                                    {selectedCustomer.latitude && selectedCustomer.longitude && (
+                                        <a
+                                            href={`https://www.google.com/maps?q=${selectedCustomer.latitude},${selectedCustomer.longitude}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="inline-flex items-center gap-1 hex-blue-50 text-[10px] font-bold text-blue-600 uppercase tracking-wider bg-blue-50 px-2 py-0.5 rounded border border-blue-100 mt-1"
+                                        >
+                                            <MapPin size={10} /> View Map
+                                        </a>
+                                    )}
+                                </div>
                             </div>
                             <button
                                 onClick={() => setSelectedCustomerId(null)}

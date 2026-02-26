@@ -126,10 +126,12 @@ const App: React.FC = () => {
                     <Settings />
                   </ProtectedRoute>
                 } />
-                <Route path="/super-admin/services" element={
-                  <SuperAdminRoute>
-                    <AdminServices />
-                  </SuperAdminRoute>
+                <Route path="/admin/services" element={
+                  <ProtectedRoute>
+                    <SubscriptionGate>
+                      <AdminServices />
+                    </SubscriptionGate>
+                  </ProtectedRoute>
                 } />
 
                 <Route path="/admin/embed-widget" element={

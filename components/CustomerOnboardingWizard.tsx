@@ -37,6 +37,8 @@ const CustomerOnboardingWizard: React.FC<CustomerOnboardingWizardProps> = ({ isO
         phone: '',
         address: '',
         postcode: '',
+        latitude: undefined as number | undefined,
+        longitude: undefined as number | undefined
     });
 
     const [serviceData, setServiceData] = useState({
@@ -83,7 +85,9 @@ const CustomerOnboardingWizard: React.FC<CustomerOnboardingWizardProps> = ({ isO
                     email: customerData.email,
                     phone: customerData.phone,
                     address: customerData.address,
-                    postcode: customerData.postcode
+                    postcode: customerData.postcode,
+                    latitude: customerData.latitude,
+                    longitude: customerData.longitude
                 });
                 setSavedCustomer(currentCustomer);
             }
@@ -101,6 +105,8 @@ const CustomerOnboardingWizard: React.FC<CustomerOnboardingWizardProps> = ({ isO
                     phone: currentCustomer.phone,
                     address: currentCustomer.address,
                     postcode: currentCustomer.postcode,
+                    latitude: currentCustomer.latitude,
+                    longitude: currentCustomer.longitude,
                     status: JobStatus.SCHEDULED,
                     frequency: serviceData.frequency,
                     price_quote: Number(serviceData.priceQuote),
@@ -276,11 +282,13 @@ const CustomerOnboardingWizard: React.FC<CustomerOnboardingWizardProps> = ({ isO
                                     <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
                                         <PostcodeLookup
                                             initialPostcode={customerData.postcode}
-                                            onAddressSelected={(addr, post) => {
+                                            onAddressSelected={(addr, post, lat, lng) => {
                                                 setCustomerData(prev => ({
                                                     ...prev,
                                                     address: addr,
-                                                    postcode: post
+                                                    postcode: post,
+                                                    latitude: lat,
+                                                    longitude: lng
                                                 }));
                                             }}
                                         />

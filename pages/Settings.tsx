@@ -4,11 +4,11 @@ import { useAuth } from '../context/AuthContext';
 import { BusinessSettings } from '../types';
 import { supabase } from '../lib/supabase';
 // Add AlertCircle to the imported icons from lucide-react to fix missing reference error
-import { Building, CreditCard, PoundSterling, Brain, ShieldCheck, Save, RefreshCcw, Download, CheckCircle, ChevronRight, Upload, Clock, Calendar, AlertTriangle, MapPin, Plus, Trash2, Fuel, Scissors, AlertCircle, Cloud, Sliders, Hash, Users, Activity, Zap, ArrowRight } from 'lucide-react';
+import { Building, CreditCard, PoundSterling, Brain, ShieldCheck, Save, RefreshCcw, Download, CheckCircle, ChevronRight, Upload, Clock, Calendar, AlertTriangle, MapPin, Plus, Trash2, Fuel, Scissors, AlertCircle, Cloud, Sliders, Hash, Users, Activity, Zap, ArrowRight, Maximize2, Info } from 'lucide-react';
 import TeamSettings from '../components/TeamSettings';
 
 const Settings: React.FC = () => {
-  const { settings, updateSettings, jobs, expenses, communications, loadData, subscriptionStatus, billingCustomerId } = useJobs();
+  const { settings, updateSettings, jobs, expenses, communications, loadData, subscriptionStatus, billingCustomerId, planLevel, isFeatureEnabled } = useJobs();
   const { organizationId } = useAuth();
   const [activeTab, setActiveTab] = useState<'profile' | 'billing' | 'pricing' | 'schedule' | 'location' | 'ai' | 'team'>('profile');
   const [formData, setFormData] = useState<BusinessSettings>(settings);
@@ -24,6 +24,13 @@ const Settings: React.FC = () => {
     setFormData(prev => ({
       ...prev,
       [name]: type === 'number' ? parseFloat(value) : value
+    }));
+  };
+
+  const handleManualUpdate = (name: keyof BusinessSettings, value: any) => {
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
     }));
   };
 
@@ -352,7 +359,7 @@ const Settings: React.FC = () => {
                           </div>
                           <div>
                             <h4 className="text-2xl font-black text-white tracking-tight">
-                              {subscriptionStatus === 'active' ? 'Professional Pro' : 'Free Starter'}
+                              {planLevel === 'starter' ? 'Free Starter' : planLevel === 'pro' ? 'Professional Pro' : 'Enterprise Elite'}
                             </h4>
                             <div className="flex items-center gap-2 mt-1">
                               {subscriptionStatus === 'active' ? (
@@ -366,11 +373,34 @@ const Settings: React.FC = () => {
                           </div>
                         </div>
                         <p className="text-slate-400 text-sm max-w-sm leading-relaxed">
-                          {subscriptionStatus === 'active'
-                            ? 'Full access to MowVision™ AI, unlimited smart-scheduling, and premium client portals.'
-                            : 'Upgrade to Professional to unlock high-precision AI estimations and unlimited business growth.'
+                          {planLevel === 'starter'
+                            ? 'The essential toolkit for solo lawn care pros.'
+                            : planLevel === 'pro'
+                              ? 'Full access to AI-powered quoting, route optimization, and premium tools.'
+                              : 'The complete enterprise solution for multiple crews and fleet tracking.'
                           }
                         </p>
+
+                        <div className="flex flex-wrap gap-2 mt-4">
+                          {[
+                            { id: 'ai_quoting', label: 'AI Quoting' },
+                            { id: 'route_optimization', label: 'Route Optimization' },
+                            { id: 'sms_notifications', label: 'SMS Notifications' },
+                            { id: 'lawn_measurement', label: 'Lawn Measurement' },
+                            { id: 'unlimited_jobs', label: 'Unlimited Jobs' },
+                          ].map(feature => (
+                            <div
+                              key={feature.id}
+                              className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border transition-all ${isFeatureEnabled(feature.id as any)
+                                  ? 'bg-lawn-500/20 text-lawn-400 border-lawn-500/30'
+                                  : 'bg-slate-800 text-slate-600 border-slate-700/50 opacity-40'
+                                }`}
+                            >
+                              {isFeatureEnabled(feature.id as any) && <CheckCircle size={10} className="inline mr-1" />}
+                              {feature.label}
+                            </div>
+                          ))}
+                        </div>
                       </div>
                       <div className="text-left md:text-right shrink-0">
                         <div className="text-4xl font-black text-white flex items-baseline gap-1">
@@ -607,45 +637,79 @@ const Settings: React.FC = () => {
                         </div>
                       </div>
 
-                      <div className="p-5 bg-slate-50 rounded-xl border border-slate-200 shadow-sm transition-all hover:shadow-md">
-                        <div className="flex items-center gap-3 mb-4">
-                          <div className="p-2 bg-white rounded-lg border border-slate-100 text-blue-600 shadow-sm">
-                            <Fuel size={20} />
-                          </div>
-                          <div>
-                            <span className="text-sm font-bold text-slate-800">Travel Surcharge</span>
-                            <p className="text-[10px] text-slate-500">Based on distance from business base.</p>
-                          </div>
+                      {/* MowVision™ Satellite Measurement Configuration */}
+                      <div className="md:col-span-2 p-6 bg-gradient-to-br from-lawn-600 to-emerald-700 rounded-3xl border border-lawn-500 shadow-xl shadow-lawn-900/10 text-white relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-all group-hover:scale-110">
+                          <Maximize2 size={80} />
                         </div>
-                        <div className="grid grid-cols-2 gap-4">
-                          <div className="space-y-1.5">
-                            <label className="text-[10px] uppercase font-black text-slate-400 block tracking-widest">Free Radius (KM)</label>
-                            <input
-                              type="number"
-                              name="fuelSurchargeRadius"
-                              value={formData.fuelSurchargeRadius}
-                              onChange={handleInputChange}
-                              className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none"
-                            />
-                          </div>
-                          <div className="space-y-1.5">
-                            <label className="text-[10px] uppercase font-black text-slate-400 block tracking-widest">Fuel Fee ({formData.currency})</label>
-                            <div className="relative">
-                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold">{formData.currency}</span>
+                        <div className="relative z-10 space-y-6">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <h4 className="text-lg font-black tracking-tight uppercase">MowVision™ Sat-Link</h4>
+                              <p className="text-xs text-lawn-100 font-bold uppercase tracking-widest opacity-80">Autonomous Satellite Measuring</p>
+                            </div>
+                            <div className="flex items-center gap-3 bg-white/10 backdrop-blur-md p-1.5 rounded-2xl border border-white/20">
+                              <span className="text-[10px] font-black uppercase tracking-widest px-3">Active</span>
                               <input
-                                type="number"
-                                name="fuelSurchargeAmount"
-                                value={formData.fuelSurchargeAmount}
+                                type="checkbox"
+                                name="enableLawnMeasurement"
+                                checked={formData.enableLawnMeasurement}
                                 onChange={handleInputChange}
-                                className="w-full pl-7 pr-3 py-2 bg-white border border-slate-300 rounded-lg text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none"
+                                className="w-12 h-6 rounded-full bg-white/20 appearance-none checked:bg-white transition-colors relative cursor-pointer
+                                before:content-[''] before:absolute before:w-4 before:h-4 before:bg-white before:rounded-full before:top-1 before:left-1 checked:before:translate-x-6 before:checked:bg-lawn-600 before:transition-transform"
                               />
                             </div>
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                            <div className="space-y-2">
+                              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-lawn-200">Price per Unit Area</label>
+                              <div className="relative">
+                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lawn-300 font-black">{formData.currency}</span>
+                                <input
+                                  type="number"
+                                  name="pricePerUnitArea"
+                                  value={formData.pricePerUnitArea}
+                                  onChange={handleInputChange}
+                                  placeholder="0.00"
+                                  className="w-full pl-10 pr-4 py-3 bg-white/10 border-2 border-white/20 rounded-2xl text-xl font-black focus:border-white focus:bg-white/20 outline-none transition-all placeholder:text-white/30"
+                                />
+                              </div>
+                            </div>
+
+                            <div className="space-y-2">
+                              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-lawn-200">Area Unit Specification</label>
+                              <div className="flex gap-2">
+                                {['m2', 'sqft'].map((unit) => (
+                                  <button
+                                    key={unit}
+                                    type="button"
+                                    onClick={() => handleManualUpdate('areaUnit', unit)}
+                                    className={`flex-1 py-3 rounded-2xl font-black text-sm uppercase tracking-widest transition-all border-2 ${formData.areaUnit === unit
+                                      ? 'bg-white text-lawn-700 border-white shadow-lg'
+                                      : 'bg-white/10 text-white border-white/20 hover:bg-white/20'
+                                      }`}
+                                  >
+                                    {unit === 'm2' ? 'Sq Meters' : 'Sq Feet'}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="p-4 bg-white/10 rounded-2xl border border-white/10 flex items-start gap-3">
+                            <div className="p-2 bg-white/20 rounded-lg">
+                              <Info size={16} className="text-white" />
+                            </div>
+                            <p className="text-[10px] text-lawn-100 font-medium leading-relaxed uppercase tracking-tight">
+                              Enabling MowVision™ allows customers to use satellite imagery to measure their lawn. Pricing is calculated as (Area × Price per Unit) + Extras. This overrides the tiered lawn size pricing.
+                            </p>
                           </div>
                         </div>
                       </div>
                     </div>
 
-                    <div className="p-4 bg-amber-50 rounded-xl border border-amber-100">
+                    <div className="p-4 bg-amber-50 rounded-xl border border-amber-100 mt-6">
                       <div className="flex items-start gap-3">
                         <div className="mt-1">
                           <MapPin size={18} className="text-amber-600" />
@@ -703,372 +767,380 @@ const Settings: React.FC = () => {
                 </div>
               )}
 
-              {activeTab === 'schedule' && (
-                <div className="space-y-8 animate-in fade-in duration-300">
-                  <div>
-                    <h3 className="text-lg font-bold text-slate-900 mb-1">Schedule Settings</h3>
-                    <p className="text-sm text-slate-500">Define your standard working hours to help with routing.</p>
-                  </div>
+              {
+                activeTab === 'schedule' && (
+                  <div className="space-y-8 animate-in fade-in duration-300">
+                    <div>
+                      <h3 className="text-lg font-bold text-slate-900 mb-1">Schedule Settings</h3>
+                      <p className="text-sm text-slate-500">Define your standard working hours to help with routing.</p>
+                    </div>
 
-                  <div className="p-6 bg-slate-50 border border-slate-100 rounded-2xl">
-                    <div className="flex flex-col md:flex-row items-center gap-6">
-                      <div className="bg-white p-4 rounded-full shadow-sm text-blue-600">
-                        <Calendar size={32} />
-                      </div>
-                      <div className="flex-1 w-full space-y-6">
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-sm font-bold text-slate-700 mb-2">Day Start</label>
-                            <select
-                              className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none"
-                              value={formData.scheduleStartHour}
-                              name="scheduleStartHour"
-                              onChange={handleInputChange}
-                            >
-                              {[6, 7, 8, 9, 10, 11].map(h => <option key={h} value={h}>{h}:00 AM</option>)}
-                            </select>
-                          </div>
-                          <div>
-                            <label className="block text-sm font-bold text-slate-700 mb-2">Day End</label>
-                            <select
-                              className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none"
-                              value={formData.scheduleEndHour}
-                              name="scheduleEndHour"
-                              onChange={handleInputChange}
-                            >
-                              {[14, 15, 16, 17, 18, 19, 20].map(h => <option key={h} value={h}>{h > 12 ? h - 12 : h}:00 PM</option>)}
-                            </select>
-                          </div>
+                    <div className="p-6 bg-slate-50 border border-slate-100 rounded-2xl">
+                      <div className="flex flex-col md:flex-row items-center gap-6">
+                        <div className="bg-white p-4 rounded-full shadow-sm text-blue-600">
+                          <Calendar size={32} />
                         </div>
+                        <div className="flex-1 w-full space-y-6">
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-sm font-bold text-slate-700 mb-2">Day Start</label>
+                              <select
+                                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none"
+                                value={formData.scheduleStartHour}
+                                name="scheduleStartHour"
+                                onChange={handleInputChange}
+                              >
+                                {[6, 7, 8, 9, 10, 11].map(h => <option key={h} value={h}>{h}:00 AM</option>)}
+                              </select>
+                            </div>
+                            <div>
+                              <label className="block text-sm font-bold text-slate-700 mb-2">Day End</label>
+                              <select
+                                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none"
+                                value={formData.scheduleEndHour}
+                                name="scheduleEndHour"
+                                onChange={handleInputChange}
+                              >
+                                {[14, 15, 16, 17, 18, 19, 20].map(h => <option key={h} value={h}>{h > 12 ? h - 12 : h}:00 PM</option>)}
+                              </select>
+                            </div>
+                          </div>
 
-                        <div>
-                          <label className="block text-sm font-bold text-slate-700 mb-3">Working Days</label>
-                          <div className="flex flex-wrap gap-2">
-                            {DAYS.map((day, index) => {
-                              const isActive = (formData.workingDays || []).includes(index);
-                              return (
-                                <button
-                                  key={day}
-                                  type="button"
-                                  onClick={() => toggleDay(index)}
-                                  className={`w-12 h-12 rounded-xl text-sm font-bold transition-all flex items-center justify-center ${isActive
-                                    ? 'bg-blue-600 text-white shadow-md shadow-blue-200'
-                                    : 'bg-white border border-slate-200 text-slate-400 hover:border-blue-300'
-                                    }`}
-                                >
-                                  {day}
-                                </button>
-                              );
-                            })}
+                          <div>
+                            <label className="block text-sm font-bold text-slate-700 mb-3">Working Days</label>
+                            <div className="flex flex-wrap gap-2">
+                              {DAYS.map((day, index) => {
+                                const isActive = (formData.workingDays || []).includes(index);
+                                return (
+                                  <button
+                                    key={day}
+                                    type="button"
+                                    onClick={() => toggleDay(index)}
+                                    className={`w-12 h-12 rounded-xl text-sm font-bold transition-all flex items-center justify-center ${isActive
+                                      ? 'bg-blue-600 text-white shadow-md shadow-blue-200'
+                                      : 'bg-white border border-slate-200 text-slate-400 hover:border-blue-300'
+                                      }`}
+                                  >
+                                    {day}
+                                  </button>
+                                );
+                              })}
+                            </div>
                           </div>
                         </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              )}
+                )
+              }
 
-              {activeTab === 'location' && (
-                <div className="space-y-8 animate-in fade-in duration-300">
-                  <div>
-                    <h3 className="text-lg font-bold text-slate-900 mb-1">Location & Weather</h3>
-                    <p className="text-sm text-slate-500">Configure your business location and weather data source.</p>
-                  </div>
-
-                  <div className="space-y-6">
-                    <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl shadow-sm">
-                      <h4 className="font-bold text-slate-800 text-sm mb-1 flex items-center gap-2">
-                        <MapPin size={16} /> Regional Service Settings
-                      </h4>
-                      <p className="text-xs text-slate-500">Service area and regional configurations are managed by the platform administrator.</p>
+              {
+                activeTab === 'location' && (
+                  <div className="space-y-8 animate-in fade-in duration-300">
+                    <div>
+                      <h3 className="text-lg font-bold text-slate-900 mb-1">Location & Weather</h3>
+                      <p className="text-sm text-slate-500">Configure your business location and weather data source.</p>
                     </div>
 
+                    <div className="space-y-6">
+                      <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl shadow-sm">
+                        <h4 className="font-bold text-slate-800 text-sm mb-1 flex items-center gap-2">
+                          <MapPin size={16} /> Regional Service Settings
+                        </h4>
+                        <p className="text-xs text-slate-500">Service area and regional configurations are managed by the platform administrator.</p>
+                      </div>
 
 
+
+                      <div className="pt-6 border-t border-slate-100">
+                        <h4 className="font-bold text-slate-800 text-sm uppercase tracking-wide mb-3 flex items-center gap-2">
+                          <Cloud size={16} className="text-blue-500" />
+                          OpenWeatherMap Integration
+                        </h4>
+                        <p className="text-xs text-slate-500 mb-4">Enter your API key to get real-time weather data for your dashboard widgets.</p>
+
+                        <div className="space-y-4">
+                          <div className="space-y-1">
+                            <label className="text-sm font-medium text-slate-700">OpenWeather API Key</label>
+                            <input
+                              type="password"
+                              name="weatherApiKey"
+                              value={formData.weatherApiKey || ''}
+                              onChange={handleInputChange}
+                              placeholder="Paste your API key here"
+                              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                            />
+                          </div>
+
+                          <div className="space-y-1">
+                            <label className="text-sm font-medium text-slate-700">Weather City / Region</label>
+                            <div className="flex gap-2">
+                              <input
+                                type="text"
+                                name="weatherCity"
+                                value={formData.weatherCity || ''}
+                                onChange={handleInputChange}
+                                placeholder="e.g. York, UK"
+                                className="flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  // Simple logic: if postcode is set, use it to suggest a city
+                                  if (formData.businessBasePostcode) {
+                                    // In a real app we'd call an API here, but for now we'll just set it to the postcode
+                                    // or a generic placeholder if we don't have a lookup
+                                    setFormData(prev => ({ ...prev, weatherCity: prev.businessBasePostcode }));
+                                  }
+                                }}
+                                className="px-3 py-2 bg-slate-100 text-slate-600 rounded-lg text-xs font-bold hover:bg-slate-200 transition-colors border border-slate-200"
+                              >
+                                Use Postcode
+                              </button>
+                            </div>
+                            <p className="text-[10px] text-slate-400">Specify your location for accurate "Mowability" forecasts.</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="pt-6 border-t border-slate-100">
+                        <h4 className="font-bold text-slate-800 text-sm uppercase tracking-wide mb-3 flex items-center gap-2">
+                          <Sliders size={16} className="text-lawn-600" />
+                          Mowability Score Calibration
+                        </h4>
+                        <p className="text-xs text-slate-500 mb-4">Customize how the "Mowability" score is calculated based on weather conditions.</p>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div className="space-y-4">
+                            <div>
+                              <div className="flex justify-between items-center mb-1">
+                                <label className="text-sm font-medium text-slate-700">Max Rain Chance</label>
+                                <span className="text-xs font-bold text-slate-500">{formData.mowabilityRainThreshold || 70}%</span>
+                              </div>
+                              <input
+                                type="range"
+                                name="mowabilityRainThreshold"
+                                min="0"
+                                max="100"
+                                value={formData.mowabilityRainThreshold || 70}
+                                onChange={handleInputChange}
+                                className="w-full accent-blue-500"
+                              />
+                              <p className="text-[10px] text-slate-400">Rain probability above this is considered "Unmowable".</p>
+                            </div>
+                            <div>
+                              <div className="flex justify-between items-center mb-1">
+                                <label className="text-sm font-medium text-slate-700">Max Wind Speed</label>
+                                <span className="text-xs font-bold text-slate-500">{formData.mowabilityWindThreshold || 30} km/h</span>
+                              </div>
+                              <input
+                                type="range"
+                                name="mowabilityWindThreshold"
+                                min="0"
+                                max="100"
+                                value={formData.mowabilityWindThreshold || 30}
+                                onChange={handleInputChange}
+                                className="w-full accent-slate-500"
+                              />
+                              <p className="text-[10px] text-slate-400">Winds above this speed reduce the score.</p>
+                            </div>
+                          </div>
+
+                          <div className="space-y-4">
+                            <div className="space-y-3">
+                              <label className="text-sm font-bold text-slate-700">Temperature Units</label>
+                              <div className="grid grid-cols-2 gap-3">
+                                {['C', 'F'].map((unit) => (
+                                  <button
+                                    key={unit}
+                                    type="button"
+                                    onClick={() => setFormData({ ...formData, temperatureUnit: unit as any })}
+                                    className={`px-4 py-3 rounded-xl border-2 text-sm font-medium transition-all text-center ${formData.temperatureUnit === unit || (!formData.temperatureUnit && unit === 'C')
+                                      ? 'bg-blue-50 border-blue-600 text-blue-700'
+                                      : 'bg-white border-slate-100 text-slate-500 hover:border-slate-200'
+                                      }`}
+                                  >
+                                    {unit === 'C' ? 'Celsius (°C)' : 'Fahrenheit (°F)'}
+                                  </button>
+                                ))}
+                              </div>
+                              <p className="text-[10px] text-slate-400">Choose how temperatures are displayed across the app.</p>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                              <div className="space-y-1">
+                                <label className="text-sm font-medium text-slate-700">Min Temp (°C)</label>
+                                <input
+                                  type="number"
+                                  name="mowabilityTempMin"
+                                  value={formData.mowabilityTempMin ?? 5}
+                                  onChange={handleInputChange}
+                                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-500 outline-none"
+                                />
+                              </div>
+                              <div className="space-y-1">
+                                <label className="text-sm font-medium text-slate-700">Max Temp (°C)</label>
+                                <input
+                                  type="number"
+                                  name="mowabilityTempMax"
+                                  value={formData.mowabilityTempMax ?? 30}
+                                  onChange={handleInputChange}
+                                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-500 outline-none"
+                                />
+                              </div>
+                            </div>
+                            <p className="text-[10px] text-slate-400">Mowing is penalized if temperature is outside this range.</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )
+              }
+              {
+                activeTab === 'ai' && (
+                  <div className="space-y-10 animate-in fade-in duration-300">
+                    <div>
+                      <h3 className="text-lg font-bold text-slate-900 mb-1">Efficiency & Automation</h3>
+                      <p className="text-sm text-slate-500">Control the Profit Heatmap efficiency logic and automatic scheduling.</p>
+                    </div>
+
+                    {/* Heatmap Thresholds */}
                     <div className="pt-6 border-t border-slate-100">
                       <h4 className="font-bold text-slate-800 text-sm uppercase tracking-wide mb-3 flex items-center gap-2">
-                        <Cloud size={16} className="text-blue-500" />
-                        OpenWeatherMap Integration
+                        <MapPin size={16} className="text-rose-500" />
+                        Profit Heatmap Efficiency Targets
                       </h4>
-                      <p className="text-xs text-slate-500 mb-4">Enter your API key to get real-time weather data for your dashboard widgets.</p>
+                      <p className="text-xs text-slate-500 mb-4">Set your hourly profit goals to customise the color coding on the Dashboard Heatmap.</p>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-1">
+                          <label className="text-sm font-medium text-slate-700">High Target (Green Zone)</label>
+                          <div className="relative">
+                            <span className="absolute left-3 top-2 text-slate-400 text-sm font-bold">{formData.currency}</span>
+                            <input
+                              type="number"
+                              name="efficiencyThresholdHigh"
+                              value={formData.efficiencyThresholdHigh}
+                              onChange={handleInputChange}
+                              className="w-full pl-7 pr-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
+                            />
+                          </div>
+                          <p className="text-[10px] text-slate-400">Neighborhoods earning more than this per hour will show as <b>Emerald</b>.</p>
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-sm font-medium text-slate-700">Low Warning (Red Zone)</label>
+                          <div className="relative">
+                            <span className="absolute left-3 top-2 text-slate-400 text-sm font-bold">{formData.currency}</span>
+                            <input
+                              type="number"
+                              name="efficiencyThresholdLow"
+                              value={formData.efficiencyThresholdLow}
+                              onChange={handleInputChange}
+                              className="w-full pl-7 pr-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-red-500 outline-none"
+                            />
+                          </div>
+                          <p className="text-[10px] text-slate-400">Neighborhoods earning less than this will show as <b>Red</b> and trigger warnings.</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Service Area Manager */}
+                    <div className="pt-6 border-t border-slate-100">
+                      <h4 className="font-bold text-slate-800 text-sm uppercase tracking-wide mb-3">Service Areas (Zones)</h4>
+                      <p className="text-xs text-slate-500 mb-4">Define serviced neighborhoods to explicitly assign customers to areas.</p>
 
                       <div className="space-y-4">
-                        <div className="space-y-1">
-                          <label className="text-sm font-medium text-slate-700">OpenWeather API Key</label>
+                        <div className="flex gap-2">
                           <input
-                            type="password"
-                            name="weatherApiKey"
-                            value={formData.weatherApiKey || ''}
-                            onChange={handleInputChange}
-                            placeholder="Paste your API key here"
-                            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                            type="text"
+                            placeholder="e.g. Westside"
+                            className="flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-lawn-500 outline-none"
+                            value={newZone}
+                            onChange={(e) => setNewZone(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddZone())}
                           />
-                        </div>
-
-                        <div className="space-y-1">
-                          <label className="text-sm font-medium text-slate-700">Weather City / Region</label>
-                          <div className="flex gap-2">
-                            <input
-                              type="text"
-                              name="weatherCity"
-                              value={formData.weatherCity || ''}
-                              onChange={handleInputChange}
-                              placeholder="e.g. York, UK"
-                              className="flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => {
-                                // Simple logic: if postcode is set, use it to suggest a city
-                                if (formData.businessBasePostcode) {
-                                  // In a real app we'd call an API here, but for now we'll just set it to the postcode
-                                  // or a generic placeholder if we don't have a lookup
-                                  setFormData(prev => ({ ...prev, weatherCity: prev.businessBasePostcode }));
-                                }
-                              }}
-                              className="px-3 py-2 bg-slate-100 text-slate-600 rounded-lg text-xs font-bold hover:bg-slate-200 transition-colors border border-slate-200"
-                            >
-                              Use Postcode
-                            </button>
-                          </div>
-                          <p className="text-[10px] text-slate-400">Specify your location for accurate "Mowability" forecasts.</p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="pt-6 border-t border-slate-100">
-                      <h4 className="font-bold text-slate-800 text-sm uppercase tracking-wide mb-3 flex items-center gap-2">
-                        <Sliders size={16} className="text-lawn-600" />
-                        Mowability Score Calibration
-                      </h4>
-                      <p className="text-xs text-slate-500 mb-4">Customize how the "Mowability" score is calculated based on weather conditions.</p>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-4">
-                          <div>
-                            <div className="flex justify-between items-center mb-1">
-                              <label className="text-sm font-medium text-slate-700">Max Rain Chance</label>
-                              <span className="text-xs font-bold text-slate-500">{formData.mowabilityRainThreshold || 70}%</span>
-                            </div>
-                            <input
-                              type="range"
-                              name="mowabilityRainThreshold"
-                              min="0"
-                              max="100"
-                              value={formData.mowabilityRainThreshold || 70}
-                              onChange={handleInputChange}
-                              className="w-full accent-blue-500"
-                            />
-                            <p className="text-[10px] text-slate-400">Rain probability above this is considered "Unmowable".</p>
-                          </div>
-                          <div>
-                            <div className="flex justify-between items-center mb-1">
-                              <label className="text-sm font-medium text-slate-700">Max Wind Speed</label>
-                              <span className="text-xs font-bold text-slate-500">{formData.mowabilityWindThreshold || 30} km/h</span>
-                            </div>
-                            <input
-                              type="range"
-                              name="mowabilityWindThreshold"
-                              min="0"
-                              max="100"
-                              value={formData.mowabilityWindThreshold || 30}
-                              onChange={handleInputChange}
-                              className="w-full accent-slate-500"
-                            />
-                            <p className="text-[10px] text-slate-400">Winds above this speed reduce the score.</p>
-                          </div>
-                        </div>
-
-                        <div className="space-y-4">
-                          <div className="space-y-3">
-                            <label className="text-sm font-bold text-slate-700">Temperature Units</label>
-                            <div className="grid grid-cols-2 gap-3">
-                              {['C', 'F'].map((unit) => (
-                                <button
-                                  key={unit}
-                                  type="button"
-                                  onClick={() => setFormData({ ...formData, temperatureUnit: unit as any })}
-                                  className={`px-4 py-3 rounded-xl border-2 text-sm font-medium transition-all text-center ${formData.temperatureUnit === unit || (!formData.temperatureUnit && unit === 'C')
-                                    ? 'bg-blue-50 border-blue-600 text-blue-700'
-                                    : 'bg-white border-slate-100 text-slate-500 hover:border-slate-200'
-                                    }`}
-                                >
-                                  {unit === 'C' ? 'Celsius (°C)' : 'Fahrenheit (°F)'}
-                                </button>
-                              ))}
-                            </div>
-                            <p className="text-[10px] text-slate-400">Choose how temperatures are displayed across the app.</p>
-                          </div>
-
-                          <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-1">
-                              <label className="text-sm font-medium text-slate-700">Min Temp (°C)</label>
-                              <input
-                                type="number"
-                                name="mowabilityTempMin"
-                                value={formData.mowabilityTempMin ?? 5}
-                                onChange={handleInputChange}
-                                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-500 outline-none"
-                              />
-                            </div>
-                            <div className="space-y-1">
-                              <label className="text-sm font-medium text-slate-700">Max Temp (°C)</label>
-                              <input
-                                type="number"
-                                name="mowabilityTempMax"
-                                value={formData.mowabilityTempMax ?? 30}
-                                onChange={handleInputChange}
-                                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-500 outline-none"
-                              />
-                            </div>
-                          </div>
-                          <p className="text-[10px] text-slate-400">Mowing is penalized if temperature is outside this range.</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-              {activeTab === 'ai' && (
-                <div className="space-y-10 animate-in fade-in duration-300">
-                  <div>
-                    <h3 className="text-lg font-bold text-slate-900 mb-1">Efficiency & Automation</h3>
-                    <p className="text-sm text-slate-500">Control the Profit Heatmap efficiency logic and automatic scheduling.</p>
-                  </div>
-
-                  {/* Heatmap Thresholds */}
-                  <div className="pt-6 border-t border-slate-100">
-                    <h4 className="font-bold text-slate-800 text-sm uppercase tracking-wide mb-3 flex items-center gap-2">
-                      <MapPin size={16} className="text-rose-500" />
-                      Profit Heatmap Efficiency Targets
-                    </h4>
-                    <p className="text-xs text-slate-500 mb-4">Set your hourly profit goals to customise the color coding on the Dashboard Heatmap.</p>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-1">
-                        <label className="text-sm font-medium text-slate-700">High Target (Green Zone)</label>
-                        <div className="relative">
-                          <span className="absolute left-3 top-2 text-slate-400 text-sm font-bold">{formData.currency}</span>
-                          <input
-                            type="number"
-                            name="efficiencyThresholdHigh"
-                            value={formData.efficiencyThresholdHigh}
-                            onChange={handleInputChange}
-                            className="w-full pl-7 pr-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
-                          />
-                        </div>
-                        <p className="text-[10px] text-slate-400">Neighborhoods earning more than this per hour will show as <b>Emerald</b>.</p>
-                      </div>
-                      <div className="space-y-1">
-                        <label className="text-sm font-medium text-slate-700">Low Warning (Red Zone)</label>
-                        <div className="relative">
-                          <span className="absolute left-3 top-2 text-slate-400 text-sm font-bold">{formData.currency}</span>
-                          <input
-                            type="number"
-                            name="efficiencyThresholdLow"
-                            value={formData.efficiencyThresholdLow}
-                            onChange={handleInputChange}
-                            className="w-full pl-7 pr-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-red-500 outline-none"
-                          />
-                        </div>
-                        <p className="text-[10px] text-slate-400">Neighborhoods earning less than this will show as <b>Red</b> and trigger warnings.</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Service Area Manager */}
-                  <div className="pt-6 border-t border-slate-100">
-                    <h4 className="font-bold text-slate-800 text-sm uppercase tracking-wide mb-3">Service Areas (Zones)</h4>
-                    <p className="text-xs text-slate-500 mb-4">Define serviced neighborhoods to explicitly assign customers to areas.</p>
-
-                    <div className="space-y-4">
-                      <div className="flex gap-2">
-                        <input
-                          type="text"
-                          placeholder="e.g. Westside"
-                          className="flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-lawn-500 outline-none"
-                          value={newZone}
-                          onChange={(e) => setNewZone(e.target.value)}
-                          onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddZone())}
-                        />
-                        <button
-                          type="button"
-                          onClick={handleAddZone}
-                          className="px-4 py-2 bg-slate-900 text-white rounded-lg text-sm font-medium hover:bg-slate-800 transition-colors flex items-center gap-2"
-                        >
-                          <Plus size={16} /> Add Area
-                        </button>
-                      </div>
-
-                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                        {formData.zones.map((zone) => (
-                          <div key={zone} className="flex items-center justify-between px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg group">
-                            <span className="text-sm text-slate-700 font-medium">{zone}</span>
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveZone(zone)}
-                              className="text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
-                            >
-                              <Trash2 size={14} />
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="pt-6 border-t border-slate-100 space-y-6">
-                    <div className="space-y-3">
-                      <label className="text-sm font-bold text-slate-700">AI Communication Tone</label>
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                        {['friendly', 'formal', 'direct'].map((tone) => (
-                          <button
-                            key={tone}
-                            type="button"
-                            onClick={() => setFormData({ ...formData, aiTone: tone as any })}
-                            className={`px-4 py-3 rounded-xl border-2 text-sm font-medium transition-all text-center capitalize ${formData.aiTone === tone
-                              ? 'bg-lawn-50 border-lawn-600 text-lawn-700'
-                              : 'bg-white border-slate-100 text-slate-500 hover:border-slate-200'
-                              }`}
-                          >
-                            {tone}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="p-4 bg-indigo-50 border border-indigo-100 rounded-xl flex items-start gap-4">
-                      <div className="mt-1 p-2 bg-white rounded-lg text-indigo-600 shadow-sm">
-                        <RefreshCcw size={18} />
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between">
-                          <h4 className="font-bold text-indigo-900 text-sm">Auto-Create Recurring Jobs</h4>
                           <button
                             type="button"
-                            onClick={() => handleToggle('autoCreateRecurring')}
-                            className={`w-10 h-6 rounded-full transition-colors relative ${formData.autoCreateRecurring ? 'bg-indigo-600' : 'bg-slate-300'}`}
+                            onClick={handleAddZone}
+                            className="px-4 py-2 bg-slate-900 text-white rounded-lg text-sm font-medium hover:bg-slate-800 transition-colors flex items-center gap-2"
                           >
-                            <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${formData.autoCreateRecurring ? 'right-1' : 'left-1'}`} />
+                            <Plus size={16} /> Add Area
                           </button>
                         </div>
-                        <p className="text-xs text-indigo-700/70 mt-1 leading-relaxed">
-                          Automatically schedule the next visit based on frequency setting when a job is completed.
-                        </p>
+
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                          {formData.zones.map((zone) => (
+                            <div key={zone} className="flex items-center justify-between px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg group">
+                              <span className="text-sm text-slate-700 font-medium">{zone}</span>
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveZone(zone)}
+                                className="text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="pt-6 border-t border-slate-100 space-y-6">
+                      <div className="space-y-3">
+                        <label className="text-sm font-bold text-slate-700">AI Communication Tone</label>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                          {['friendly', 'formal', 'direct'].map((tone) => (
+                            <button
+                              key={tone}
+                              type="button"
+                              onClick={() => setFormData({ ...formData, aiTone: tone as any })}
+                              className={`px-4 py-3 rounded-xl border-2 text-sm font-medium transition-all text-center capitalize ${formData.aiTone === tone
+                                ? 'bg-lawn-50 border-lawn-600 text-lawn-700'
+                                : 'bg-white border-slate-100 text-slate-500 hover:border-slate-200'
+                                }`}
+                            >
+                              {tone}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="p-4 bg-indigo-50 border border-indigo-100 rounded-xl flex items-start gap-4">
+                        <div className="mt-1 p-2 bg-white rounded-lg text-indigo-600 shadow-sm">
+                          <RefreshCcw size={18} />
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between">
+                            <h4 className="font-bold text-indigo-900 text-sm">Auto-Create Recurring Jobs</h4>
+                            <button
+                              type="button"
+                              onClick={() => handleToggle('autoCreateRecurring')}
+                              className={`w-10 h-6 rounded-full transition-colors relative ${formData.autoCreateRecurring ? 'bg-indigo-600' : 'bg-slate-300'}`}
+                            >
+                              <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${formData.autoCreateRecurring ? 'right-1' : 'left-1'}`} />
+                            </button>
+                          </div>
+                          <p className="text-xs text-indigo-700/70 mt-1 leading-relaxed">
+                            Automatically schedule the next visit based on frequency setting when a job is completed.
+                          </p>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              )}
+                )
+              }
 
-              {activeTab === 'team' && (
-                <div className="animate-in fade-in duration-300">
-                  <TeamSettings />
-                </div>
-              )}
+              {
+                activeTab === 'team' && (
+                  <div className="animate-in fade-in duration-300">
+                    <TeamSettings />
+                  </div>
+                )
+              }
 
 
 
-            </div>
+            </div >
 
             <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex justify-end gap-3">
               <button
@@ -1096,7 +1168,7 @@ const Settings: React.FC = () => {
                 )}
               </button>
             </div>
-          </form>
+          </form >
         </div >
       </div >
     </div >

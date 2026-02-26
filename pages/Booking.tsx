@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { useServices } from '../context/ServiceContext';
 import PostcodeLookup from '../components/PostcodeLookup';
 import { generateUUID } from '../utils';
+import LawnMeasurement from '../components/LawnMeasurement';
 
 interface BookingFormData {
   serviceId: string;
@@ -21,11 +22,14 @@ interface BookingFormData {
   email: string;
   phone: string;
   postcode: string;
+  lawnArea?: number;
+  latitude?: number;
+  longitude?: number;
 }
 
 const Booking: React.FC = () => {
   const navigate = useNavigate();
-  const { addJob, settings, loading: contextLoading } = useJobs();
+  const { addJob, settings, loading: contextLoading, isFeatureEnabled } = useJobs();
   const { services } = useServices();
   const [step, setStep] = useState<0 | 1 | 2 | 3 | 4>(0);
   const [isLoading, setIsLoading] = useState(false);
@@ -43,7 +47,10 @@ const Booking: React.FC = () => {
     name: '',
     email: '',
     phone: '',
-    postcode: ''
+    postcode: '',
+    lawnArea: undefined,
+    latitude: undefined,
+    longitude: undefined
   });
 
   const handleExtraToggle = (extra: string) => {
@@ -67,7 +74,10 @@ const Booking: React.FC = () => {
       property_type: formData.propertyType,
       lawn_size: formData.lawnSize,
       frequency: formData.frequency,
-      extras: formData.extras
+      extras: formData.extras,
+      lawn_area: formData.lawnArea,
+      latitude: formData.latitude,
+      longitude: formData.longitude
     };
 
     try {
@@ -115,6 +125,9 @@ const Booking: React.FC = () => {
         postcode: formData.postcode,
         frequency: formData.frequency,
         lawn_size: formData.lawnSize,
+        lawn_area: formData.lawnArea,
+        latitude: formData.latitude,
+        longitude: formData.longitude,
         price_quote: quote.estimatedPrice || 0,
         duration_minutes: quote.estimatedDurationMinutes || 45,
         status: JobStatus.PENDING,
@@ -212,8 +225,8 @@ const Booking: React.FC = () => {
 
               <div className="space-y-8 bg-slate-50/50 p-6 md:p-8 rounded-[2rem] border border-slate-100">
                 <PostcodeLookup
-                  onAddressSelected={(address, postcode) => {
-                    setFormData(prev => ({ ...prev, address, postcode }));
+                  onAddressSelected={(address, postcode, lat, lng) => {
+                    setFormData(prev => ({ ...prev, address, postcode, latitude: lat, longitude: lng }));
                   }}
                 />
 
@@ -275,15 +288,50 @@ const Booking: React.FC = () => {
                   <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
                     {formData.serviceName?.toLowerCase().includes('mow') ? 'Estimated Lawn Size' : 'Estimated Area Size'}
                   </label>
-                  <select
-                    className="w-full px-6 py-4 border-2 border-slate-100 rounded-2xl focus:ring-4 focus:ring-lawn-100 focus:border-lawn-500 outline-none bg-white font-bold text-slate-700 shadow-sm appearance-none cursor-pointer"
-                    value={formData.lawnSize}
-                    onChange={(e) => setFormData(prev => ({ ...prev, lawnSize: e.target.value as LawnSize }))}
-                  >
-                    {Object.values(LawnSize).map((size) => (
-                      <option key={size} value={size}>{size}</option>
-                    ))}
-                  </select>
+                  {settings.enableLawnMeasurement && isFeatureEnabled('lawn_measurement') && settings.googleMapsApiKey ? (
+                    <div className="space-y-4">
+                      <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-100 flex items-center justify-between">
+                        <div>
+                          <p className="text-xs font-black text-emerald-700 uppercase tracking-widest">MowVision™ Active</p>
+                          <p className="text-[10px] text-emerald-600 font-medium">Measure your lawn for precise pricing.</p>
+                        </div>
+                        {formData.lawnArea ? (
+                          <div className="flex items-center gap-2 px-3 py-1 bg-white rounded-lg border border-emerald-200">
+                            <span className="text-sm font-black text-slate-900">{formData.lawnArea} {settings.areaUnit}</span>
+                            <CheckCircle size={14} className="text-emerald-500" />
+                          </div>
+                        ) : (
+                          <span className="text-[10px] font-black text-emerald-400 uppercase animate-pulse">Waiting for measurement...</span>
+                        )}
+                      </div>
+
+                      <div className="h-[400px] w-full rounded-3xl overflow-hidden border-4 border-white shadow-2xl relative">
+                        <LawnMeasurement
+                          apiKey={settings.googleMapsApiKey}
+                          initialLat={formData.latitude}
+                          initialLng={formData.longitude}
+                          onAreaMeasured={(area, lat, lng) => {
+                            setFormData(prev => ({
+                              ...prev,
+                              lawnArea: area,
+                              latitude: lat,
+                              longitude: lng
+                            }));
+                          }}
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    <select
+                      className="w-full px-6 py-4 border-2 border-slate-100 rounded-2xl focus:ring-4 focus:ring-lawn-100 focus:border-lawn-500 outline-none bg-white font-bold text-slate-700 shadow-sm appearance-none cursor-pointer"
+                      value={formData.lawnSize}
+                      onChange={(e) => setFormData(prev => ({ ...prev, lawnSize: e.target.value as LawnSize }))}
+                    >
+                      {Object.values(LawnSize).map((size) => (
+                        <option key={size} value={size}>{size}</option>
+                      ))}
+                    </select>
+                  )}
                 </div>
                 <div className="space-y-4">
                   <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Visit Frequency</label>
@@ -327,7 +375,11 @@ const Booking: React.FC = () => {
                   disabled={isLoading}
                   className="flex-1 bg-lawn-600 hover:bg-lawn-700 text-white font-black py-5 px-8 rounded-2xl transition-all flex items-center justify-center gap-3 shadow-xl shadow-lawn-200 active:scale-95 disabled:opacity-50"
                 >
-                  {isLoading ? <Loader2 className="animate-spin" size={24} /> : <>Generate Smart Quote <ArrowRight size={24} /></>}
+                  {isLoading ? <Loader2 className="animate-spin" size={24} /> : (
+                    isFeatureEnabled('ai_quoting')
+                      ? <>Generate Smart Quote <ArrowRight size={24} /></>
+                      : <>Generate Instant Quote <ArrowRight size={20} /></>
+                  )}
                 </button>
               </div>
             </div>
@@ -361,7 +413,9 @@ const Booking: React.FC = () => {
                         <span className="bg-lawn-600 text-white text-[10px] font-black uppercase tracking-[0.2em] px-4 py-1.5 rounded-full border border-lawn-400 shadow-md shadow-lawn-200">
                           Verified Pricing
                         </span>
-                        <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Optimized by Gemini AI</span>
+                        {isFeatureEnabled('ai_quoting') && (
+                          <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest ml-2">Optimized by Gemini AI</span>
+                        )}
                       </div>
                       <h3 className="text-sm font-black text-slate-400 uppercase tracking-[0.2em]">Estimated Investment</h3>
                       <div className="flex items-baseline gap-2">

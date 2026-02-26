@@ -39,6 +39,7 @@ const adminGroups = [
     label: 'Business',
     items: [
       { label: 'Customers', path: '/admin/customers', icon: <Smile size={16} /> },
+      { label: 'Services', path: '/admin/services', icon: <Leaf size={16} /> },
       { label: 'Embed Widget', path: '/admin/embed-widget', icon: <Code2 size={16} /> },
     ],
 
@@ -48,7 +49,6 @@ const adminGroups = [
 /* ─── Frontend (customer-facing) nav links ─── */
 const frontendLinks = [
   { label: 'Features', path: '/features' },
-  { label: 'Pricing', path: '/pricing' },
   { label: 'About', path: '/about' },
   { label: 'Contact', path: '/contact' },
   { label: 'Book a Demo', path: '/book' },
@@ -357,7 +357,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                     className="hidden md:flex items-center gap-1.5 px-4 py-2 rounded-xl text-[13px] font-semibold bg-lawn-600 text-white hover:bg-lawn-700 shadow-sm hover:shadow-lawn-300 hover:shadow-md transition-all duration-200"
                   >
                     <LogIn size={14} />
-                    Admin Login
+                    Login
                   </Link>
                 ) : null
               )}
@@ -539,7 +539,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-100"
                 >
                   <LogIn size={18} className="text-slate-400" />
-                  Admin Login
+                  Login
                 </Link>
               )}
             </div>
